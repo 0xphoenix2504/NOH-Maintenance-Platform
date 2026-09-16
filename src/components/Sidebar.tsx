@@ -5,10 +5,12 @@ import {
   Laptop,
   Package,
   CalendarCheck,
+  History,
   UserCheck
 } from 'lucide-react';
+import type { UserProfile } from '../types';
 
-export type NavTab = 'dashboard' | 'tickets' | 'assets' | 'inventory' | 'preventive';
+export type NavTab = 'dashboard' | 'tickets' | 'assets' | 'inventory' | 'preventive' | 'logs';
 
 interface SidebarProps {
   activeTab: NavTab;
@@ -17,6 +19,9 @@ interface SidebarProps {
   assetCount: number;
   lowStockCount: number;
   activePreventiveCount: number;
+  logCount?: number;
+  currentUser?: UserProfile;
+  onOpenUserSwitcher?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -25,7 +30,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ticketCount,
   assetCount,
   lowStockCount,
-  activePreventiveCount
+  activePreventiveCount,
+  logCount = 0,
+  currentUser,
+  onOpenUserSwitcher
 }) => {
   const navItems = [
     {
@@ -58,6 +66,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'الصيانة الوقائية الدورية',
       icon: CalendarCheck,
       badge: activePreventiveCount > 0 ? activePreventiveCount : null
+    },
+    {
+      id: 'logs' as NavTab,
+      label: 'سجل النشاطات والتعديلات',
+      icon: History,
+      badge: logCount > 0 ? logCount : null
     }
   ];
 
@@ -142,15 +156,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </div>
 
-      {/* Technician / System Badge Footer */}
-      <div style={{
-        padding: '1rem',
-        borderTop: '1px solid var(--border-color)',
-        background: 'var(--bg-card-hover)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem'
-      }}>
+      {/* Technician / Active User Profile Footer */}
+      <div
+        onClick={onOpenUserSwitcher}
+        style={{
+          padding: '1rem',
+          borderTop: '1px solid var(--border-color)',
+          background: 'var(--bg-card-hover)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          cursor: onOpenUserSwitcher ? 'pointer' : 'default',
+          transition: 'background 0.2s ease'
+        }}
+        title="انقر لتغيير المستخدم / المهندس النشط المسجل باسمه العمليات"
+      >
         <div style={{
           width: '36px',
           height: '36px',
@@ -159,16 +179,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           color: '#0284c7',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          flexShrink: 0
         }}>
           <UserCheck size={18} />
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            ENG Abdelrahman
+            {currentUser?.name || 'ENG Abdelrahman'}
           </div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-            مهندس الصيانة المسؤول
+          <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>
+            {currentUser?.role || 'مهندس الصيانة المسؤول'}
           </div>
         </div>
       </div>

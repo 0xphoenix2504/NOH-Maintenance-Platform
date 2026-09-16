@@ -148,3 +148,52 @@ export interface PreventiveScheduleItem {
   status: 'upcoming' | 'due_today' | 'overdue' | 'completed';
   checklist: Array<{ id: string; text: string; done: boolean }>;
 }
+
+export type LogActionType = 
+  | 'create'        // إضافة عنصر جديد
+  | 'update'        // تعديل بيانات
+  | 'delete'        // حذف عنصر
+  | 'stock_adjust'  // حركة مخزون (صرف أو إضافة)
+  | 'status_change' // تغيير حالة تشغيلية
+  | 'system';       // إجراءات نظام
+
+export type LogTargetType = 
+  | 'asset'         // جهاز / أصل
+  | 'ticket'        // تذكرة / تقرير صيانة
+  | 'spare_part'    // قطعة غيار
+  | 'preventive'    // صيانة وقائية
+  | 'user'          // حساب أو فني
+  | 'system';       // إعدادات النظام
+
+export interface FieldChange {
+  field: string;
+  label: string;
+  oldValue?: string | number | boolean | null;
+  newValue?: string | number | boolean | null;
+}
+
+export interface AuditLog {
+  id: string;
+  timestamp: string;               // ISO 8601 string
+  userName: string;                // القائم بالإجراء e.g. ENG Abdelrahman
+  userRole?: string;               // وظيفته e.g. مهندس تكنولوجيا المعلومات
+  actionType: LogActionType;       // نوع الإجراء
+  targetType: LogTargetType;       // الهدف
+  targetId: string;                // معرف العنصر المستهدف e.g. 4th-PCCU-LPTP02
+  targetTitle: string;             // عنوان أو اسم العنصر
+  description: string;             // الوصف المقروء للعملية بالعربية
+  details?: {
+    changes?: FieldChange[];       // قائمة التغييرات بالتفصيل
+    extraInfo?: string;            // ملاحظات إضافية
+    badgeText?: string;            // وسام توضيحي
+    badgeVariant?: string;
+  };
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  role: string;
+  department?: string;
+  isCustom?: boolean;
+}

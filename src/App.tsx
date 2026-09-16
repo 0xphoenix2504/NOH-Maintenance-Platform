@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Asset, MaintenanceTicket, SparePartInventoryItem, PreventiveScheduleItem } from './types';
+import type { Asset, MaintenanceTicket, SparePartInventoryItem, PreventiveScheduleItem, AuditLog, UserProfile } from './types';
 import { storageService } from './services/storageService';
 import { Sidebar } from './components/Sidebar';
 import type { NavTab } from './components/Sidebar';
@@ -9,11 +9,13 @@ import { TicketsView } from './components/TicketsView';
 import { AssetsView } from './components/AssetsView';
 import { InventoryView } from './components/InventoryView';
 import { PreventiveView } from './components/PreventiveView';
+import { ActivityLogView } from './components/ActivityLogView';
 import { OfficialReportModal } from './components/OfficialReportModal';
 import { TicketFormModal } from './components/TicketFormModal';
 import { AssetFormModal } from './components/AssetFormModal';
 import { AssetDetailsModal } from './components/AssetDetailsModal';
 import { QRScannerModal } from './components/QRScannerModal';
+import { UserSwitcherModal } from './components/UserSwitcherModal';
 
 export const App: React.FC = () => {
   // Theme state
@@ -34,11 +36,17 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [globalSearch, setGlobalSearch] = useState('');
 
+  // Active User / Performer Profile State
+  const [users, setUsers] = useState<UserProfile[]>(() => storageService.getUsers());
+  const [currentUser, setCurrentUser] = useState<UserProfile>(() => storageService.getCurrentUser());
+  const [userSwitcherOpen, setUserSwitcherOpen] = useState(false);
+
   // Core Data States
   const [assets, setAssets] = useState<Asset[]>(() => storageService.getAssets());
   const [tickets, setTickets] = useState<MaintenanceTicket[]>(() => storageService.getTickets());
   const [spareParts, setSpareParts] = useState<SparePartInventoryItem[]>(() => storageService.getSpareParts());
   const [preventiveSchedules, setPreventiveSchedules] = useState<PreventiveScheduleItem[]>(() => storageService.getPreventiveSchedules());
+  const [logs, setLogs] = useState<AuditLog[]>(() => storageService.getLogs());
 
   // Modals States
   const [officialReportTicket, setOfficialReportTicket] = useState<MaintenanceTicket | null>(null);
@@ -52,25 +60,39 @@ export const App: React.FC = () => {
   const [detailsAsset, setDetailsAsset] = useState<Asset | null>(null);
   const [qrScannerOpen, setQrScannerOpen] = useState(false);
 
-  // Ticket Operations
+  // User Management Operations
+  const handleSelectUser = (user: UserProfile) => {
+    storageService.setCurrentUser(user);
+    setCurrentUser(user);
+  };
+
+  const handleAddUser = (newUser: UserProfile) => {
+    const updatedUsers = storageService.addUser(newUser);
+    setUsers(updatedUsers);
+  };
+
+  // Ticket Operations with Audit Logging
   const handleSaveTicket = (ticket: MaintenanceTicket) => {
     if (editingTicket) {
-      const updated = storageService.updateTicket(ticket);
-      setTickets(updated);
+      const res = storageService.updateTicket(ticket, currentUser);
+      setTickets(res.tickets);
+      setLogs(res.logs);
+      setAssets(res.assets);
     } else {
-      const updated = storageService.addTicket(ticket);
-      setTickets(updated);
+      const res = storageService.addTicket(ticket, currentUser);
+      setTickets(res.tickets);
+      setLogs(res.logs);
+      setAssets(res.assets);
     }
-    // Refresh assets in case status changed
-    setAssets(storageService.getAssets());
     setTicketModalOpen(false);
     setEditingTicket(null);
     setNewTicketAssetId(undefined);
   };
 
   const handleDeleteTicket = (ticketId: string) => {
-    const updated = storageService.deleteTicket(ticketId);
-    setTickets(updated);
+    const res = storageService.deleteTicket(ticketId, currentUser);
+    setTickets(res.tickets);
+    setLogs(res.logs);
   };
 
   const handleOpenNewTicket = (assetId?: string) => {
@@ -84,22 +106,25 @@ export const App: React.FC = () => {
     setTicketModalOpen(true);
   };
 
-  // Asset Operations
+  // Asset Operations with Audit Logging
   const handleSaveAsset = (asset: Asset) => {
     if (editingAsset) {
-      const updated = storageService.updateAsset(asset);
-      setAssets(updated);
+      const res = storageService.updateAsset(asset, currentUser);
+      setAssets(res.assets);
+      setLogs(res.logs);
     } else {
-      const updated = storageService.addAsset(asset);
-      setAssets(updated);
+      const res = storageService.addAsset(asset, currentUser);
+      setAssets(res.assets);
+      setLogs(res.logs);
     }
     setAssetModalOpen(false);
     setEditingAsset(null);
   };
 
   const handleDeleteAsset = (assetId: string) => {
-    const updated = storageService.deleteAsset(assetId);
-    setAssets(updated);
+    const res = storageService.deleteAsset(assetId, currentUser);
+    setAssets(res.assets);
+    setLogs(res.logs);
   };
 
   const handleOpenNewAsset = () => {
@@ -112,23 +137,30 @@ export const App: React.FC = () => {
     setAssetModalOpen(true);
   };
 
-  // Inventory Operations
+  // Inventory Operations with Audit Logging
   const handleUpdateStock = (partId: string, delta: number) => {
-    const updated = storageService.updateSparePartStock(partId, delta);
-    setSpareParts(updated);
+    const res = storageService.updateSparePartStock(partId, delta, currentUser);
+    setSpareParts(res.parts);
+    setLogs(res.logs);
   };
 
   const handleSaveNewPart = (newPart: SparePartInventoryItem) => {
-    const current = storageService.getSpareParts();
-    const updated = [newPart, ...current];
-    storageService.saveSpareParts(updated);
-    setSpareParts(updated);
+    const res = storageService.addSparePart(newPart, currentUser);
+    setSpareParts(res.parts);
+    setLogs(res.logs);
   };
 
-  // Preventive Checklist Operations
+  // Preventive Checklist Operations with Audit Logging
   const handleToggleChecklist = (scheduleId: string, checkId: string) => {
-    const updated = storageService.toggleChecklistItem(scheduleId, checkId);
-    setPreventiveSchedules(updated);
+    const res = storageService.toggleChecklistItem(scheduleId, checkId, currentUser);
+    setPreventiveSchedules(res.schedules);
+    setLogs(res.logs);
+  };
+
+  // Clear Logs
+  const handleClearLogs = () => {
+    const updated = storageService.clearLogs();
+    setLogs(updated);
   };
 
   // Counts for Sidebar
@@ -147,6 +179,9 @@ export const App: React.FC = () => {
         assetCount={assets.length}
         lowStockCount={lowStockCount}
         activePreventiveCount={activePreventiveCount}
+        logCount={logs.length}
+        currentUser={currentUser}
+        onOpenUserSwitcher={() => setUserSwitcherOpen(true)}
       />
 
       {/* Main Area */}
@@ -162,6 +197,8 @@ export const App: React.FC = () => {
           onSearchChange={setGlobalSearch}
           assets={assets}
           tickets={tickets}
+          currentUser={currentUser}
+          onOpenUserSwitcher={() => setUserSwitcherOpen(true)}
         />
 
         {/* View Routing */}
@@ -171,6 +208,8 @@ export const App: React.FC = () => {
             tickets={tickets}
             spareParts={spareParts}
             preventiveSchedules={preventiveSchedules}
+            logs={logs}
+            currentUser={currentUser}
             onViewTicketReport={(ticket) => setOfficialReportTicket(ticket)}
             onEditTicket={handleOpenEditTicket}
             onSelectAsset={(asset) => setDetailsAsset(asset)}
@@ -214,6 +253,18 @@ export const App: React.FC = () => {
           <PreventiveView
             schedules={preventiveSchedules}
             onToggleCheckItem={handleToggleChecklist}
+          />
+        )}
+
+        {activeTab === 'logs' && (
+          <ActivityLogView
+            logs={logs}
+            assets={assets}
+            tickets={tickets}
+            users={users}
+            onSelectAsset={(asset) => setDetailsAsset(asset)}
+            onViewTicketReport={(ticket) => setOfficialReportTicket(ticket)}
+            onClearLogs={handleClearLogs}
           />
         )}
       </div>
@@ -262,6 +313,7 @@ export const App: React.FC = () => {
         <AssetDetailsModal
           asset={detailsAsset}
           tickets={tickets}
+          logs={logs}
           onEditAsset={(asset) => {
             setDetailsAsset(null);
             handleOpenEditAsset(asset);
@@ -287,6 +339,17 @@ export const App: React.FC = () => {
             setDetailsAsset(asset);
           }}
           onClose={() => setQrScannerOpen(false)}
+        />
+      )}
+
+      {/* 6. Active User Switcher Modal */}
+      {userSwitcherOpen && (
+        <UserSwitcherModal
+          users={users}
+          currentUser={currentUser}
+          onSelectUser={handleSelectUser}
+          onAddUser={handleAddUser}
+          onClose={() => setUserSwitcherOpen(false)}
         />
       )}
 

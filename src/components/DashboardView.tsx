@@ -1,4 +1,4 @@
-import type { Asset, MaintenanceTicket, SparePartInventoryItem, PreventiveScheduleItem } from '../types';
+import type { Asset, MaintenanceTicket, SparePartInventoryItem, PreventiveScheduleItem, AuditLog, UserProfile } from '../types';
 import {
   Laptop,
   Wrench,
@@ -9,7 +9,13 @@ import {
   FileText,
   CheckCircle2,
   Activity,
-  ArrowRight
+  ArrowRight,
+  History,
+  PlusCircle,
+  Edit3,
+  RefreshCw,
+  Layers,
+  Trash2
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -17,6 +23,8 @@ interface DashboardViewProps {
   tickets: MaintenanceTicket[];
   spareParts: SparePartInventoryItem[];
   preventiveSchedules?: PreventiveScheduleItem[];
+  logs?: AuditLog[];
+  currentUser?: UserProfile;
   onViewTicketReport: (ticket: MaintenanceTicket) => void;
   onEditTicket: (ticket: MaintenanceTicket) => void;
   onSelectAsset: (asset: Asset) => void;
@@ -28,6 +36,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   assets,
   tickets,
   spareParts,
+  preventiveSchedules: _preventiveSchedules,
+  logs = [],
+  currentUser,
   onViewTicketReport,
   onEditTicket,
   onSelectAsset,
@@ -70,6 +81,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     else categoryCount['أخرى']++;
   });
 
+  // Time format helper
+  const formatTimeAgo = (isoDate: string) => {
+    try {
+      const date = new Date(isoDate);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffMins < 1) return 'الآن';
+      if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+      if (diffHours < 24) return `منذ ${diffHours} ساعة`;
+      if (diffDays === 1) return 'أمس';
+      if (diffDays < 30) return `منذ ${diffDays} يوم`;
+      return date.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' });
+    } catch {
+      return isoDate;
+    }
+  };
+
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
@@ -92,7 +124,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>مستشفى نيل الأمل لجراحات الأطفال</span>
           </div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>
-            مرحباً بك، باشمهندس عبدالرحمن 👨‍💻
+            مرحباً بك، {currentUser?.name || 'ENG Abdelrahman'} 👨‍💻
           </h1>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
             لديك <strong style={{ color: '#ef4444' }}>{activeTickets.length} بلاغات قيد المتابعة</strong> و <strong style={{ color: '#8b5cf6' }}>{needsPartsTickets.length} جهاز بانتظار قطع غيار</strong> من المخزن.
@@ -296,6 +328,79 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     >
                       تحديث الإجراء
                     </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* RECENT AUDIT ACTIVITY FEED WIDGET */}
+      {logs.length > 0 && (
+        <div className="glass-panel" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <History size={18} color="var(--primary)" />
+                سجل أحدث النشاطات والتعديلات الأخيرة في النظام (Recent Audit Trail)
+              </h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                تتبع لحظي لمن قام بإضافة أو تعديل أي جهاز، تقرير صيانة، أو حركة مخزون
+              </p>
+            </div>
+
+            <button
+              onClick={() => onNavigateToTab('logs')}
+              className="btn btn-secondary btn-sm"
+            >
+              عرض السجل الكامل ({logs.length})
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            {logs.slice(0, 5).map(log => {
+              return (
+                <div
+                  key={log.id}
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
+                    padding: '0.75rem 1rem',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '0.65rem'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      background: log.actionType === 'create' ? '#ecfdf5' : log.actionType === 'status_change' ? '#f5f3ff' : log.actionType === 'stock_adjust' ? '#fffbeb' : log.actionType === 'delete' ? '#fef2f2' : '#eff6ff',
+                      color: log.actionType === 'create' ? '#059669' : log.actionType === 'status_change' ? '#7c3aed' : log.actionType === 'stock_adjust' ? '#d97706' : log.actionType === 'delete' ? '#dc2626' : '#2563eb',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {log.actionType === 'create' ? <PlusCircle size={16} /> : log.actionType === 'status_change' ? <RefreshCw size={16} /> : log.actionType === 'stock_adjust' ? <Layers size={16} /> : log.actionType === 'delete' ? <Trash2 size={16} /> : <Edit3 size={16} />}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {log.description}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        بواسطة: <strong style={{ color: 'var(--primary)' }}>{log.userName}</strong> ({log.userRole || 'فني IT'}) • الهدف: <span style={{ fontFamily: 'var(--font-mono)' }}>{log.targetId}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', direction: 'ltr' }}>
+                    {formatTimeAgo(log.timestamp)}
                   </div>
                 </div>
               );

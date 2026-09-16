@@ -1,5 +1,6 @@
-import type { Asset, MaintenanceTicket } from '../types';
-import { QrCode, Plus, Search, Sun, Moon, Bell, Laptop } from 'lucide-react';
+import React from 'react';
+import type { Asset, MaintenanceTicket, UserProfile } from '../types';
+import { QrCode, Plus, Search, Sun, Moon, Bell, Laptop, UserCheck } from 'lucide-react';
 
 interface HeaderProps {
   theme: 'light' | 'dark';
@@ -11,6 +12,8 @@ interface HeaderProps {
   onSearchChange: (q: string) => void;
   assets?: Asset[];
   tickets: MaintenanceTicket[];
+  currentUser?: UserProfile;
+  onOpenUserSwitcher?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -21,7 +24,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenQRScanner,
   searchQuery,
   onSearchChange,
-  tickets
+  tickets,
+  currentUser,
+  onOpenUserSwitcher
 }) => {
   const pendingPartsCount = tickets.filter(t => t.statusAfterMaintenance === 'needs_parts' || t.status === 'pending_parts').length;
 
@@ -41,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
       zIndex: 30
     }}>
       {/* Search and Quick Filters */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, maxWidth: '500px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, maxWidth: '480px' }}>
         <div style={{ position: 'relative', width: '100%' }}>
           <Search size={17} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input
@@ -88,12 +93,46 @@ export const Header: React.FC<HeaderProps> = ({
           <span>تسجيل بلاغ صيانة</span>
         </button>
 
+        {/* Active User Switcher Pill */}
+        <button
+          onClick={onOpenUserSwitcher}
+          className="btn btn-secondary btn-sm"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'var(--bg-card-hover)',
+            border: '1px solid var(--border-color)',
+            padding: '0.4rem 0.75rem',
+            borderRadius: 'var(--radius-full)'
+          }}
+          title="تبديل المستخدم النشط لتسجيل الإجراءات باسمه"
+        >
+          <div style={{
+            width: '22px',
+            height: '22px',
+            borderRadius: '50%',
+            background: '#0284c7',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '11px',
+            fontWeight: 800
+          }}>
+            <UserCheck size={12} />
+          </div>
+          <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>
+            {currentUser?.name || 'ENG Abdelrahman'}
+          </span>
+        </button>
+
         {/* Notifications indicator */}
         <div style={{ position: 'relative' }}>
           <button
             className="btn btn-secondary btn-sm"
             style={{ padding: '0.5rem', borderRadius: '50%', position: 'relative' }}
-            title="التنبيهات"
+            title="التنبيهات والأجهزة المعلقة"
           >
             <Bell size={17} />
             {pendingPartsCount > 0 && (

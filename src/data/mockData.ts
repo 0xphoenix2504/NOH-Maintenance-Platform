@@ -1,4 +1,4 @@
-import type { Asset, MaintenanceTicket, SparePartInventoryItem, PreventiveScheduleItem } from '../types';
+import type { Asset, MaintenanceTicket, SparePartInventoryItem, PreventiveScheduleItem, AuditLog, UserProfile } from '../types';
 
 export const INITIAL_ASSETS: Asset[] = [
   {
@@ -362,5 +362,148 @@ export const INITIAL_PREVENTIVE_SCHEDULES: PreventiveScheduleItem[] = [
       { id: 'chk-9', text: 'فحص نظام التكييف المزدوج ودرجة حرارة الكبائن', done: true },
       { id: 'chk-10', text: 'التحقق من نجاح الـ Automated Daily Backup', done: false }
     ]
+  }
+];
+
+export const INITIAL_USERS: UserProfile[] = [
+  {
+    id: 'user-01',
+    name: 'ENG Abdelrahman',
+    role: 'مهندس صيانة ودعم فني IT',
+    department: 'قسم تكنولوجيا المعلومات'
+  },
+  {
+    id: 'user-02',
+    name: 'ENG Mohamed Tarek',
+    role: 'مهندس شبكات وبنية تحتية',
+    department: 'قسم تكنولوجيا المعلومات'
+  },
+  {
+    id: 'user-03',
+    name: 'ENG Hossam IT',
+    role: 'مدير تكنولوجيا المعلومات (IT Manager)',
+    department: 'إدارة نظم المعلومات'
+  },
+  {
+    id: 'user-04',
+    name: 'م. سارة أحمد',
+    role: 'مسؤولة العهد وقواعد البيانات',
+    department: 'شؤون الأجهزة والعهد'
+  }
+];
+
+export const INITIAL_AUDIT_LOGS: AuditLog[] = [
+  {
+    id: 'log-101',
+    timestamp: '2026-09-10T20:05:00',
+    userName: 'ENG Abdelrahman',
+    userRole: 'مهندس صيانة ودعم فني IT',
+    actionType: 'status_change',
+    targetType: 'ticket',
+    targetId: 'R10-9-2026',
+    targetTitle: 'تقرير صيانة لابتوب PICCU (4th-PCCU-LPTP02)',
+    description: 'تم تحديث حالة البلاغ إلى "يحتاج قطعة غيار" وتركيب هارد NVMe مؤقت للطوارئ',
+    details: {
+      changes: [
+        { field: 'statusAfterMaintenance', label: 'الحالة بعد الصيانة', oldValue: 'in_progress', newValue: 'needs_parts' },
+        { field: 'downtimeFormatted', label: 'مدة التوقف', oldValue: '0', newValue: '8 أيام (173 ساعة)' }
+      ],
+      extraInfo: 'تم تركيب SSD خارجي مؤقت للضرورة القصوى لحين توفير قطعة بديلة من المخزن'
+    }
+  },
+  {
+    id: 'log-102',
+    timestamp: '2026-09-10T19:45:00',
+    userName: 'ENG Abdelrahman',
+    userRole: 'مهندس صيانة ودعم فني IT',
+    actionType: 'status_change',
+    targetType: 'asset',
+    targetId: '4th-PCCU-LPTP02',
+    targetTitle: 'Dell Latitude E5470 - PICCU Station',
+    description: 'تم تغيير حالة الجهاز من "يعمل بكفاءة" إلى "بانتظار قطع غيار"',
+    details: {
+      changes: [
+        { field: 'status', label: 'حالة الجهاز', oldValue: 'operational', newValue: 'needs_parts' }
+      ]
+    }
+  },
+  {
+    id: 'log-103',
+    timestamp: '2026-09-05T11:45:00',
+    userName: 'ENG Mohamed Tarek',
+    userRole: 'مهندس شبكات وبنية تحتية',
+    actionType: 'update',
+    targetType: 'ticket',
+    targetId: 'R05-9-2026',
+    targetTitle: 'تقرير صيانة طابعة العيادات (1st-OPD-PRN02)',
+    description: 'تم إغلاق البلاغ بنجاح وتغيير حالة الجهاز إلى "تم الإصلاح"',
+    details: {
+      changes: [
+        { field: 'status', label: 'حالة التذكرة', oldValue: 'in_progress', newValue: 'closed' },
+        { field: 'statusAfterMaintenance', label: 'الحالة بعد الصيانة', oldValue: 'under_observation', newValue: 'repaired' }
+      ]
+    }
+  },
+  {
+    id: 'log-104',
+    timestamp: '2026-09-05T11:20:00',
+    userName: 'ENG Mohamed Tarek',
+    userRole: 'مهندس شبكات وبنية تحتية',
+    actionType: 'stock_adjust',
+    targetType: 'spare_part',
+    targetId: 'sp-02',
+    targetTitle: 'HP Paper Pickup Roller Assembly',
+    description: 'تم صرف قطعة غيار (1 قطعة) لصالح صيانة طابعة العيادات الخارجية',
+    details: {
+      changes: [
+        { field: 'quantityInStock', label: 'الرصيد المتبقي بالمخزن', oldValue: 9, newValue: 8 }
+      ],
+      extraInfo: 'خصم تلقائي مرتبط بالتقرير رقم R05-9-2026'
+    }
+  },
+  {
+    id: 'log-105',
+    timestamp: '2026-09-03T15:00:00',
+    userName: 'ENG Abdelrahman',
+    userRole: 'مهندس صيانة ودعم فني IT',
+    actionType: 'create',
+    targetType: 'ticket',
+    targetId: 'R10-9-2026',
+    targetTitle: 'بلاغ صيانة جديد لجهاز 4th-PCCU-LPTP02',
+    description: 'تسجيل بلاغ عطل جديد: شاشة سوداء وعدم إقلاع نظام التشغيل في رعاية الأطفال',
+    details: {
+      extraInfo: 'مصدر البلاغ: بلاغ مستخدم (عبدالرحمن فتحي - تمريض PICCU)'
+    }
+  },
+  {
+    id: 'log-106',
+    timestamp: '2026-09-01T09:15:00',
+    userName: 'ENG Abdelrahman',
+    userRole: 'مهندس صيانة ودعم فني IT',
+    actionType: 'update',
+    targetType: 'preventive',
+    targetId: 'prev-01',
+    targetTitle: 'فحص وتنظيف أجهزة محطات العناية المركزة (PICCU & ICU)',
+    description: 'إنجاز بنود الفحص الدوري الشهري وتحديث تقرير الصيانة الوقائية',
+    details: {
+      changes: [
+        { field: 'chk-1', label: 'فحص استقرار نظام التشغيل والبرامج الطبية', oldValue: false, newValue: true },
+        { field: 'chk-2', label: 'تنظيف فتحات التهوية والمراوح من الأتربة', oldValue: false, newValue: true }
+      ]
+    }
+  },
+  {
+    id: 'log-107',
+    timestamp: '2026-08-20T10:00:00',
+    userName: 'ENG Hossam IT',
+    userRole: 'مدير تكنولوجيا المعلومات',
+    actionType: 'create',
+    targetType: 'asset',
+    targetId: 'SRV-DC-01',
+    targetTitle: 'Dell PowerEdge R740 - الدومين وسيرفر المستشفى الرئيسي',
+    description: 'إضافة سيرفر جديد إلى سجل الأصول وتوليد كود الباركود والـ QR Code',
+    details: {
+      extraInfo: 'غرفة السيرفرات الرئيسية Data Center A1'
+    }
   }
 ];
