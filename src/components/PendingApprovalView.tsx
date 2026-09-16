@@ -58,17 +58,34 @@ export const PendingApprovalView: React.FC<PendingApprovalViewProps> = ({
           textAlign: 'center'
         }}>
           
-          {/* Animated Pending Icon */}
+          {/* Hospital Logo */}
           <div style={{
-            width: '72px',
-            height: '72px',
-            borderRadius: '50%',
-            background: '#fffbeb',
-            color: '#d97706',
+            width: '80px',
+            height: '80px',
+            borderRadius: '16px',
+            background: '#ffffff',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '1.25rem',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+            border: '1px solid var(--border-color)',
+            padding: '6px',
+            marginBottom: '1rem'
+          }}>
+            <img src="/logo.png" alt="شعار مستشفى نيل الأمل" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </div>
+          
+          {/* Animated Pending Icon */}
+          <div style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            background: '#fffbeb',
+            color: '#d97706',
+            display: 'flex',
+            margin: '0 auto 1.25rem auto',
+            alignItems: 'center',
+            justifyContent: 'center',
             border: '2px solid rgba(217, 119, 6, 0.3)',
             boxShadow: '0 8px 20px rgba(217, 119, 6, 0.15)'
           }}>

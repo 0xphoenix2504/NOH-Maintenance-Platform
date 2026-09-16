@@ -147,8 +147,11 @@ export const AssetDetailsModal: React.FC<AssetDetailsModalProps> = ({
             {/* QR Sticker Card */}
             <div className="glass-panel" style={{ padding: '1.25rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div ref={qrLabelRef} style={{ background: '#ffffff', padding: '12px', borderRadius: '12px', border: '2px solid #0284c7', width: '100%', maxWidth: '200px' }}>
-                <div style={{ fontSize: '10px', fontWeight: 800, color: '#0369a1', marginBottom: '4px' }}>
-                  مستشفى نيل الأمل — IT Asset
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px dashed #cbd5e1', paddingBottom: '4px', marginBottom: '6px' }}>
+                  <div style={{ fontSize: '9.5px', fontWeight: 800, color: '#0369a1', textAlign: 'right' }}>
+                    مستشفى نيل الأمل — IT
+                  </div>
+                  <img src="/logo.png" alt="Logo" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0' }}>
                   <QRCodeSVG value={`NOH-ASSET:${asset.id}`} size={110} level="M" />

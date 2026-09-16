@@ -113,20 +113,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
         gap: '0.85rem'
       }}>
         <div style={{
-          width: '42px',
-          height: '42px',
+          width: '46px',
+          height: '46px',
           borderRadius: '12px',
-          background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+          background: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'white',
-          fontWeight: 900,
-          fontSize: '1.2rem',
-          boxShadow: '0 4px 12px var(--primary-glow)',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)',
+          border: '1px solid var(--border-color)',
+          padding: '3px',
           flexShrink: 0
         }}>
-          NH
+          <img src="/logo.png" alt="شعار مستشفى نيل الأمل" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
         <div style={{ minWidth: 0 }}>
           <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

@@ -127,13 +127,25 @@ export const BatchQRPrintModal: React.FC<BatchQRPrintModalProps> = ({ assets, on
                 }}
               >
                 {/* Header */}
-                <div style={{ width: '100%', borderBottom: '1px dashed #cbd5e1', paddingBottom: '4px', marginBottom: '6px' }}>
-                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#0369a1' }}>
-                    Nile of Hope Hospital
+                <div style={{
+                  width: '100%',
+                  borderBottom: '1px dashed #cbd5e1',
+                  paddingBottom: '4px',
+                  marginBottom: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '4px'
+                }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '9.5px', fontWeight: 800, color: '#0369a1' }}>
+                      Nile of Hope Hospital
+                    </div>
+                    <div style={{ fontSize: '7.5px', color: '#64748b' }}>
+                      مستشفى نيل الأمل — IT Tag
+                    </div>
                   </div>
-                  <div style={{ fontSize: '8px', color: '#64748b' }}>
-                    IT Asset Tag — قسم تكنولوجيا المعلومات
-                  </div>
+                  <img src="/logo.png" alt="Logo" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
                 </div>
 
                 {/* QR Code */}

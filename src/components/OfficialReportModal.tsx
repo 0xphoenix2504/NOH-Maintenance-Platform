@@ -151,25 +151,24 @@ export const OfficialReportModal: React.FC<OfficialReportModalProps> = ({ ticket
                 </div>
 
                 {/* Hospital Logo Emblem */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ textAlign: 'left' }}>
                     <div style={{ fontSize: '14px', fontWeight: 800, color: '#0284c7' }}>مستشفى نيل الأمل</div>
                     <div style={{ fontSize: '9px', color: '#64748b' }}>Pediatric Surgeries & Congenital Anomalies</div>
                   </div>
                   <div style={{
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
+                    width: '48px',
+                    height: '48px',
+                    background: '#ffffff',
+                    borderRadius: '8px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'white',
-                    fontWeight: 900,
-                    fontSize: '18px',
-                    boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
+                    border: '1px solid #cbd5e1',
+                    padding: '2px',
+                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)'
                   }}>
-                    NH
+                    <img src="/logo.png" alt="مستشفى نيل الأمل" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   </div>
                 </div>
               </div>

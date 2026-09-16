@@ -116,19 +116,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         flexWrap: 'wrap',
         gap: '1rem'
       }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)', background: 'var(--primary-light)', padding: '2px 8px', borderRadius: '4px' }}>
-              نظام إدارة صيانة تكنولوجيا المعلومات
-            </span>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>مستشفى نيل الأمل لجراحات الأطفال</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '16px',
+            background: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '6px',
+            boxShadow: '0 4px 12px rgba(2, 132, 199, 0.12)',
+            border: '1px solid rgba(2, 132, 199, 0.2)',
+            flexShrink: 0
+          }}>
+            <img src="/logo.png" alt="مستشفى نيل الأمل" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>
-            مرحباً بك، {currentUser?.name || 'ENG Abdelrahman'} 👨‍💻
-          </h1>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            لديك <strong style={{ color: '#ef4444' }}>{activeTickets.length} بلاغات قيد المتابعة</strong> و <strong style={{ color: '#8b5cf6' }}>{needsPartsTickets.length} جهاز بانتظار قطع غيار</strong> من المخزن.
-          </p>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)', background: 'var(--primary-light)', padding: '2px 8px', borderRadius: '4px' }}>
+                نظام إدارة صيانة تكنولوجيا المعلومات
+              </span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>مستشفى نيل الأمل لجراحات الأطفال</span>
+            </div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>
+              مرحباً بك، {currentUser?.name || 'ENG Abdelrahman'} 👨‍💻
+            </h1>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              لديك <strong style={{ color: '#ef4444' }}>{activeTickets.length} بلاغات قيد المتابعة</strong> و <strong style={{ color: '#8b5cf6' }}>{needsPartsTickets.length} جهاز بانتظار قطع غيار</strong> من المخزن.
+            </p>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '0.65rem' }}>

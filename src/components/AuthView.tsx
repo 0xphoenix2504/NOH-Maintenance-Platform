@@ -129,20 +129,19 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
         {/* Hospital Branding Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <div style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '18px',
-            background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+            width: '90px',
+            height: '90px',
+            borderRadius: '20px',
+            background: '#ffffff',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'white',
-            fontWeight: 900,
-            fontSize: '1.8rem',
-            boxShadow: '0 8px 24px rgba(2, 132, 199, 0.35)',
+            boxShadow: '0 8px 24px rgba(2, 132, 199, 0.15)',
+            border: '1px solid rgba(2, 132, 199, 0.2)',
+            padding: '8px',
             marginBottom: '0.85rem'
           }}>
-            NH
+            <img src="/logo.png" alt="مستشفى نيل الأمل" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '0.2rem' }}>
             مستشفى نيل الأمل
