@@ -597,4 +597,15 @@ body {
     padding: 15mm !important;
     page-break-after: always;
   }
+  .batch-qr-print-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6mm !important;
+    width: 100% !important;
+  }
+  .qr-sticker-card {
+    border: 1.5px solid #0284c7 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+  }
 }

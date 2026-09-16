@@ -6,24 +6,37 @@ import {
   AlertTriangle,
   CheckCircle2,
   DollarSign,
-  Warehouse
+  Warehouse,
+  Edit,
+  Trash2,
+  Download,
+  X
 } from 'lucide-react';
+import { storageService } from '../services/storageService';
 
 interface InventoryViewProps {
   spareParts: SparePartInventoryItem[];
   onUpdateStock: (partId: string, deltaQty: number) => void;
   onSavePart: (part: SparePartInventoryItem) => void;
+  onUpdatePart?: (part: SparePartInventoryItem) => void;
+  onDeletePart?: (partId: string) => void;
 }
 
 export const InventoryView: React.FC<InventoryViewProps> = ({
   spareParts,
   onUpdateStock,
-  onSavePart
+  onSavePart,
+  onUpdatePart,
+  onDeletePart
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  
+  // Modal states
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [editingPart, setEditingPart] = useState<SparePartInventoryItem | null>(null);
 
-  // New Part Form State
+  // Form State
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Storage');
   const [partNumber, setPartNumber] = useState('');
@@ -33,36 +46,87 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   const [location, setLocation] = useState('مخزن تكنولوجيا المعلومات - خزانة 1');
   const [supplier, setSupplier] = useState('');
 
-  const filteredParts = spareParts.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredParts = spareParts.filter(p => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.supplier && p.supplier.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
+
+    return matchesSearch && matchesCategory;
+  });
 
   const totalInventoryValue = spareParts.reduce((acc, p) => acc + (p.quantityInStock * p.unitCost), 0);
   const lowStockCount = spareParts.filter(p => p.status === 'low_stock' || p.status === 'out_of_stock').length;
 
-  const handleAddNewSubmit = (e: React.FormEvent) => {
+  const handleOpenAddNew = () => {
+    setEditingPart(null);
+    setName('');
+    setCategory('Storage');
+    setPartNumber('');
+    setQuantityInStock(5);
+    setMinThreshold(2);
+    setUnitCost(500);
+    setLocation('مخزن تكنولوجيا المعلومات - خزانة 1');
+    setSupplier('');
+    setIsAddingNew(true);
+  };
+
+  const handleOpenEdit = (part: SparePartInventoryItem) => {
+    setEditingPart(part);
+    setName(part.name);
+    setCategory(part.category);
+    setPartNumber(part.partNumber);
+    setQuantityInStock(part.quantityInStock);
+    setMinThreshold(part.minThreshold);
+    setUnitCost(part.unitCost);
+    setLocation(part.location);
+    setSupplier(part.supplier || '');
+    setIsAddingNew(true);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    const newItem: SparePartInventoryItem = {
-      id: `sp-${Date.now()}`,
+    const qty = Number(quantityInStock);
+    const min = Number(minThreshold);
+
+    const partItem: SparePartInventoryItem = {
+      id: editingPart ? editingPart.id : `sp-${Date.now()}`,
       name: name.trim(),
       category,
       partNumber: partNumber.trim() || `PN-${Date.now().toString().slice(-4)}`,
-      quantityInStock: Number(quantityInStock),
-      minThreshold: Number(minThreshold),
+      quantityInStock: qty,
+      minThreshold: min,
       unitCost: Number(unitCost),
-      location,
-      status: Number(quantityInStock) === 0 ? 'out_of_stock' : Number(quantityInStock) <= Number(minThreshold) ? 'low_stock' : 'in_stock',
-      supplier
+      location: location.trim(),
+      status: qty === 0 ? 'out_of_stock' : qty <= min ? 'low_stock' : 'in_stock',
+      supplier: supplier.trim()
     };
 
-    onSavePart(newItem);
+    if (editingPart && onUpdatePart) {
+      onUpdatePart(partItem);
+    } else {
+      onSavePart(partItem);
+    }
+
     setIsAddingNew(false);
-    setName('');
-    setPartNumber('');
+    setEditingPart(null);
+  };
+
+  const handleExportCSV = () => {
+    const csvContent = storageService.exportTableToCSV('inventory');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `NileOfHope_Inventory_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -77,10 +141,16 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
           </p>
         </div>
 
-        <button onClick={() => setIsAddingNew(true)} className="btn btn-primary">
-          <Plus size={16} />
-          إضافة صنف جديد للمخزن
-        </button>
+        <div style={{ display: 'flex', gap: '0.65rem' }}>
+          <button onClick={handleExportCSV} className="btn btn-secondary btn-sm" title="تصدير بيانات المخزن إلى CSV">
+            <Download size={16} />
+            تصدير CSV
+          </button>
+          <button onClick={handleOpenAddNew} className="btn btn-primary">
+            <Plus size={16} />
+            إضافة صنف جديد للمخزن
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -116,17 +186,19 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
         </div>
       </div>
 
-      {/* Add New Part Modal */}
+      {/* Add / Edit Part Modal */}
       {isAddingNew && (
         <div className="modal-backdrop">
           <div className="modal-content" style={{ maxWidth: '600px' }}>
             <div className="modal-header">
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>إضافة صنف جديد إلى مخزن IT</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>
+                {editingPart ? 'تعديل بيانات صنف المخزن' : 'إضافة صنف جديد إلى مخزن IT'}
+              </h3>
               <button onClick={() => setIsAddingNew(false)} className="btn btn-secondary btn-sm" style={{ padding: '0.4rem' }}>
-                ✕
+                <X size={18} />
               </button>
             </div>
-            <form onSubmit={handleAddNewSubmit} style={{ display: 'contents' }}>
+            <form onSubmit={handleFormSubmit} style={{ display: 'contents' }}>
               <div className="modal-body">
                 <div className="form-group">
                   <label className="form-label">اسم القطعة / الصنف *</label>
@@ -228,7 +300,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                   إلغاء
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  إضافة للمخزن
+                  {editingPart ? 'حفظ التعديلات' : 'إضافة للمخزن'}
                 </button>
               </div>
             </form>
@@ -238,17 +310,29 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
 
       {/* Inventory Table */}
       <div className="glass-panel" style={{ padding: '1.25rem' }}>
-        <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem' }}>
-          <div style={{ flex: 1, position: 'relative' }}>
+        <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: '220px', position: 'relative' }}>
             <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="text"
               className="form-control"
               style={{ paddingRight: '2.4rem' }}
-              placeholder="بحث باسم الصنف أو البارت نمبر..."
+              placeholder="بحث باسم الصنف أو البارت نمبر أو المورد..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+          </div>
+
+          <div style={{ minWidth: '160px' }}>
+            <select className="form-control" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+              <option value="all">كافة التصنيفات</option>
+              <option value="Storage">وحدات تخزين</option>
+              <option value="RAM Memory">ذواكر RAM</option>
+              <option value="Printer Parts">طابعات ومستهلكات</option>
+              <option value="Power Adapters">شواحن ومحولات</option>
+              <option value="Network Cables">شبكات وأسلاك</option>
+              <option value="Consumables">صيانة ومستهلكات</option>
+            </select>
           </div>
         </div>
 
@@ -264,6 +348,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                 <th>مكان الحفظ</th>
                 <th>الحالة</th>
                 <th>تعديل الرصيد السريع</th>
+                <th>الإجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -321,6 +406,32 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                       </button>
                     </div>
                   </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.35rem' }}>
+                      <button
+                        onClick={() => handleOpenEdit(part)}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: '0.25rem 0.5rem' }}
+                        title="تعديل الصنف"
+                      >
+                        <Edit size={14} />
+                      </button>
+                      {onDeletePart && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`هل أنت متأكد من حذف "${part.name}" نهائياً من المخزن؟`)) {
+                              onDeletePart(part.id);
+                            }
+                          }}
+                          className="btn btn-danger btn-sm"
+                          style={{ padding: '0.25rem 0.5rem' }}
+                          title="حذف الصنف"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -331,3 +442,4 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     </div>
   );
 };
+

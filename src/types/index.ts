@@ -190,10 +190,41 @@ export interface AuditLog {
   };
 }
 
+export type UserRole = 'admin' | 'technician' | 'user';
+
+export type AccountStatus = 'active' | 'pending' | 'suspended';
+
+export type PermissionKey = 
+  | 'dashboard'        // لوحة التحكم والتحليلات
+  | 'tickets'          // تقارير وتذاكر الصيانة
+  | 'assets'           // سجل الأجهزة والعهد
+  | 'inventory'        // قطع الغيار والمخزون
+  | 'preventive'       // الصيانة الوقائية
+  | 'logs'             // سجل النشاطات والتعديلات
+  | 'user_management'; // إدارة المستخدمين والصلاحيات
+
+export interface UserAccount {
+  id: string;
+  name: string;
+  username: string;
+  email?: string;
+  password?: string;
+  role: UserRole;
+  status: AccountStatus;
+  department: string;
+  jobTitle: string;
+  permissions: PermissionKey[];
+  createdAt: string;
+  lastLogin?: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
   role: string;
   department?: string;
   isCustom?: boolean;
+  username?: string;
+  status?: AccountStatus;
+  permissions?: PermissionKey[];
 }

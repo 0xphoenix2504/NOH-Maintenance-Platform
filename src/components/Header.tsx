@@ -1,6 +1,6 @@
 import React from 'react';
-import type { Asset, MaintenanceTicket, UserProfile } from '../types';
-import { QrCode, Plus, Search, Sun, Moon, Bell, Laptop, UserCheck } from 'lucide-react';
+import type { Asset, MaintenanceTicket, UserAccount, UserProfile, PermissionKey } from '../types';
+import { QrCode, Plus, Search, Sun, Moon, Bell, Laptop, UserCheck, ShieldCheck, LogOut, Printer, Database } from 'lucide-react';
 
 interface HeaderProps {
   theme: 'light' | 'dark';
@@ -8,12 +8,14 @@ interface HeaderProps {
   onNewTicket: () => void;
   onNewAsset: () => void;
   onOpenQRScanner: () => void;
+  onOpenBatchQR?: () => void;
+  onOpenDataManagement?: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
   assets?: Asset[];
   tickets: MaintenanceTicket[];
-  currentUser?: UserProfile;
-  onOpenUserSwitcher?: () => void;
+  currentUser?: UserAccount | UserProfile;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,13 +24,20 @@ export const Header: React.FC<HeaderProps> = ({
   onNewTicket,
   onNewAsset,
   onOpenQRScanner,
+  onOpenBatchQR,
+  onOpenDataManagement,
   searchQuery,
   onSearchChange,
   tickets,
   currentUser,
-  onOpenUserSwitcher
+  onLogout
 }) => {
   const pendingPartsCount = tickets.filter(t => t.statusAfterMaintenance === 'needs_parts' || t.status === 'pending_parts').length;
+  const userPerms: PermissionKey[] = currentUser?.permissions || [];
+  const isAdmin = currentUser?.role === 'admin' || userPerms.includes('user_management');
+
+  const canCreateTicket = isAdmin || userPerms.includes('tickets');
+  const canCreateAsset = isAdmin || userPerms.includes('assets');
 
   return (
     <header className="glass-panel" style={{
@@ -46,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
       zIndex: 30
     }}>
       {/* Search and Quick Filters */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, maxWidth: '480px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, maxWidth: '460px' }}>
         <div style={{ position: 'relative', width: '100%' }}>
           <Search size={17} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input
@@ -64,55 +73,82 @@ export const Header: React.FC<HeaderProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
         
         {/* QR Scanner Trigger */}
-        <button
-          onClick={onOpenQRScanner}
-          className="btn btn-secondary btn-sm"
-          title="مسح كود QR أو باركود الجهاز"
-        >
-          <QrCode size={16} />
-          <span>مسح QR</span>
-        </button>
+        {canCreateAsset && (
+          <button
+            onClick={onOpenQRScanner}
+            className="btn btn-secondary btn-sm"
+            title="مسح كود QR أو باركود الجهاز"
+          >
+            <QrCode size={16} />
+            <span>مسح QR</span>
+          </button>
+        )}
+
+        {/* Batch QR Print Trigger */}
+        {canCreateAsset && onOpenBatchQR && (
+          <button
+            onClick={onOpenBatchQR}
+            className="btn btn-secondary btn-sm"
+            title="طباعة ملصقات الباركود المجمعة على ورق A4"
+          >
+            <Printer size={16} />
+            <span>ملصقات QR</span>
+          </button>
+        )}
+
+        {/* Data Backup & Restore Modal Trigger */}
+        {isAdmin && onOpenDataManagement && (
+          <button
+            onClick={onOpenDataManagement}
+            className="btn btn-secondary btn-sm"
+            title="إدارة البيانات والنسخ الاحتياطي (JSON / CSV)"
+          >
+            <Database size={16} />
+            <span>النسخ الاحتياطي</span>
+          </button>
+        )}
 
         {/* New Asset Button */}
-        <button
-          onClick={onNewAsset}
-          className="btn btn-secondary btn-sm"
-          title="إضافة جهاز جديد إلى السجل"
-        >
-          <Laptop size={16} />
-          <span>إضافة جهاز</span>
-        </button>
+        {canCreateAsset && (
+          <button
+            onClick={onNewAsset}
+            className="btn btn-secondary btn-sm"
+            title="إضافة جهاز جديد إلى السجل"
+          >
+            <Laptop size={16} />
+            <span>إضافة جهاز</span>
+          </button>
+        )}
 
         {/* New Ticket Button */}
-        <button
-          onClick={onNewTicket}
-          className="btn btn-primary btn-sm"
-          style={{ padding: '0.45rem 1rem' }}
-        >
-          <Plus size={16} />
-          <span>تسجيل بلاغ صيانة</span>
-        </button>
+        {canCreateTicket && (
+          <button
+            onClick={onNewTicket}
+            className="btn btn-primary btn-sm"
+            style={{ padding: '0.45rem 1rem' }}
+          >
+            <Plus size={16} />
+            <span>تسجيل بلاغ صيانة</span>
+          </button>
+        )}
 
-        {/* Active User Switcher Pill */}
-        <button
-          onClick={onOpenUserSwitcher}
-          className="btn btn-secondary btn-sm"
+        {/* Logged in User Pill */}
+        <div
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
             background: 'var(--bg-card-hover)',
             border: '1px solid var(--border-color)',
-            padding: '0.4rem 0.75rem',
+            padding: '0.35rem 0.75rem',
             borderRadius: 'var(--radius-full)'
           }}
-          title="تبديل المستخدم النشط لتسجيل الإجراءات باسمه"
         >
           <div style={{
-            width: '22px',
-            height: '22px',
+            width: '24px',
+            height: '24px',
             borderRadius: '50%',
-            background: '#0284c7',
+            background: isAdmin ? '#7c3aed' : '#0284c7',
             color: 'white',
             display: 'flex',
             alignItems: 'center',
@@ -120,12 +156,12 @@ export const Header: React.FC<HeaderProps> = ({
             fontSize: '11px',
             fontWeight: 800
           }}>
-            <UserCheck size={12} />
+            {isAdmin ? <ShieldCheck size={13} /> : <UserCheck size={13} />}
           </div>
-          <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>
-            {currentUser?.name || 'ENG Abdelrahman'}
+          <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+            {currentUser?.name || 'مستخدم'}
           </span>
-        </button>
+        </div>
 
         {/* Notifications indicator */}
         <div style={{ position: 'relative' }}>
@@ -167,6 +203,18 @@ export const Header: React.FC<HeaderProps> = ({
         >
           {theme === 'dark' ? <Sun size={17} color="#f59e0b" /> : <Moon size={17} color="#0284c7" />}
         </button>
+
+        {/* Logout Quick Button */}
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="btn btn-secondary btn-sm"
+            style={{ padding: '0.5rem', borderRadius: '50%', color: '#ef4444' }}
+            title="تسجيل الخروج"
+          >
+            <LogOut size={16} />
+          </button>
+        )}
 
       </div>
     </header>

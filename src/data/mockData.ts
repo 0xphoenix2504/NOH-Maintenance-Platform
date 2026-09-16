@@ -1,4 +1,4 @@
-import type { Asset, MaintenanceTicket, SparePartInventoryItem, PreventiveScheduleItem, AuditLog, UserProfile } from '../types';
+import type { Asset, MaintenanceTicket, SparePartInventoryItem, PreventiveScheduleItem, AuditLog, UserProfile, UserAccount } from '../types';
 
 export const INITIAL_ASSETS: Asset[] = [
   {
@@ -365,32 +365,72 @@ export const INITIAL_PREVENTIVE_SCHEDULES: PreventiveScheduleItem[] = [
   }
 ];
 
-export const INITIAL_USERS: UserProfile[] = [
+export const INITIAL_ACCOUNTS: UserAccount[] = [
   {
-    id: 'user-01',
-    name: 'ENG Abdelrahman',
-    role: 'مهندس صيانة ودعم فني IT',
-    department: 'قسم تكنولوجيا المعلومات'
+    id: 'acc-admin',
+    name: 'ENG Abdelrahman (Admin)',
+    username: 'admin',
+    email: 'abdelrahmanyasser.phoenix@gmail.com',
+    password: 'admin',
+    role: 'admin',
+    status: 'active',
+    department: 'قسم تكنولوجيا المعلومات IT',
+    jobTitle: 'مدير النظام ومسؤول الصيانة',
+    permissions: ['dashboard', 'tickets', 'assets', 'inventory', 'preventive', 'logs', 'user_management'],
+    createdAt: '2026-08-01T08:00:00',
+    lastLogin: '2026-09-16T14:00:00'
   },
   {
-    id: 'user-02',
+    id: 'acc-tech-01',
     name: 'ENG Mohamed Tarek',
-    role: 'مهندس شبكات وبنية تحتية',
-    department: 'قسم تكنولوجيا المعلومات'
+    username: 'mohamed',
+    email: 'm.tarek@nileofhope.org',
+    password: '123',
+    role: 'technician',
+    status: 'active',
+    department: 'قسم تكنولوجيا المعلومات IT',
+    jobTitle: 'مهندس شبكات وبنية تحتية',
+    permissions: ['dashboard', 'tickets', 'assets', 'inventory', 'preventive', 'logs'],
+    createdAt: '2026-08-05T09:00:00',
+    lastLogin: '2026-09-15T11:00:00'
   },
   {
-    id: 'user-03',
+    id: 'acc-tech-02',
     name: 'ENG Hossam IT',
-    role: 'مدير تكنولوجيا المعلومات (IT Manager)',
-    department: 'إدارة نظم المعلومات'
+    username: 'hossam',
+    email: 'hossam@nileofhope.org',
+    password: '123',
+    role: 'technician',
+    status: 'active',
+    department: 'قسم تكنولوجيا المعلومات IT',
+    jobTitle: 'مهندس صيانة ودعم فني',
+    permissions: ['dashboard', 'tickets', 'assets', 'logs'],
+    createdAt: '2026-08-10T10:00:00'
   },
   {
-    id: 'user-04',
+    id: 'acc-pending-01',
     name: 'م. سارة أحمد',
-    role: 'مسؤولة العهد وقواعد البيانات',
-    department: 'شؤون الأجهزة والعهد'
+    username: 'sara',
+    email: 'sara.ahmed@nileofhope.org',
+    password: '123',
+    role: 'user',
+    status: 'pending',
+    department: 'شؤون الأجهزة والعهد',
+    jobTitle: 'مسؤولة العهد وقواعد البيانات',
+    permissions: [], // Default: zero permissions until admin grants them
+    createdAt: '2026-09-15T16:30:00'
   }
 ];
+
+export const INITIAL_USERS: UserProfile[] = INITIAL_ACCOUNTS.map(a => ({
+  id: a.id,
+  name: a.name,
+  role: a.jobTitle,
+  department: a.department,
+  username: a.username,
+  status: a.status,
+  permissions: a.permissions
+}));
 
 export const INITIAL_AUDIT_LOGS: AuditLog[] = [
   {

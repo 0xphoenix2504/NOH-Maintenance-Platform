@@ -6,11 +6,13 @@ import {
   Package,
   CalendarCheck,
   History,
-  UserCheck
+  ShieldCheck,
+  UserCheck,
+  LogOut
 } from 'lucide-react';
-import type { UserProfile } from '../types';
+import type { UserAccount, UserProfile, PermissionKey } from '../types';
 
-export type NavTab = 'dashboard' | 'tickets' | 'assets' | 'inventory' | 'preventive' | 'logs';
+export type NavTab = 'dashboard' | 'tickets' | 'assets' | 'inventory' | 'preventive' | 'logs' | 'user_management';
 
 interface SidebarProps {
   activeTab: NavTab;
@@ -20,8 +22,9 @@ interface SidebarProps {
   lowStockCount: number;
   activePreventiveCount: number;
   logCount?: number;
-  currentUser?: UserProfile;
-  onOpenUserSwitcher?: () => void;
+  pendingUsersCount?: number;
+  currentUser?: UserAccount | UserProfile;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -32,48 +35,72 @@ export const Sidebar: React.FC<SidebarProps> = ({
   lowStockCount,
   activePreventiveCount,
   logCount = 0,
+  pendingUsersCount = 0,
   currentUser,
-  onOpenUserSwitcher
+  onLogout
 }) => {
-  const navItems = [
+  const userPerms: PermissionKey[] = currentUser?.permissions || [];
+  const isAdmin = currentUser?.role === 'admin' || userPerms.includes('user_management');
+
+  const allNavItems = [
     {
       id: 'dashboard' as NavTab,
       label: 'لوحة التحكم والتحليلات',
       icon: LayoutDashboard,
-      badge: null
+      badge: null,
+      requiredPerm: 'dashboard' as PermissionKey
     },
     {
       id: 'tickets' as NavTab,
       label: 'تقارير وتذاكر الصيانة',
       icon: FileText,
-      badge: ticketCount
+      badge: ticketCount,
+      requiredPerm: 'tickets' as PermissionKey
     },
     {
       id: 'assets' as NavTab,
       label: 'سجل الأجهزة والعهد',
       icon: Laptop,
-      badge: assetCount
+      badge: assetCount,
+      requiredPerm: 'assets' as PermissionKey
     },
     {
       id: 'inventory' as NavTab,
       label: 'قطع الغيار والمخزون',
       icon: Package,
       badge: lowStockCount > 0 ? `${lowStockCount} ناقص` : null,
-      badgeVariant: lowStockCount > 0 ? 'badge-damaged' : ''
+      badgeVariant: lowStockCount > 0 ? 'badge-damaged' : '',
+      requiredPerm: 'inventory' as PermissionKey
     },
     {
       id: 'preventive' as NavTab,
       label: 'الصيانة الوقائية الدورية',
       icon: CalendarCheck,
-      badge: activePreventiveCount > 0 ? activePreventiveCount : null
+      badge: activePreventiveCount > 0 ? activePreventiveCount : null,
+      requiredPerm: 'preventive' as PermissionKey
     },
     {
       id: 'logs' as NavTab,
       label: 'سجل النشاطات والتعديلات',
       icon: History,
-      badge: logCount > 0 ? logCount : null
+      badge: logCount > 0 ? logCount : null,
+      requiredPerm: 'logs' as PermissionKey
+    },
+    {
+      id: 'user_management' as NavTab,
+      label: 'إدارة المستخدمين والصلاحيات',
+      icon: ShieldCheck,
+      badge: pendingUsersCount > 0 ? `${pendingUsersCount} جديد` : null,
+      badgeVariant: pendingUsersCount > 0 ? 'badge-needs-parts' : '',
+      requiredPerm: 'user_management' as PermissionKey
     }
   ];
+
+  // Filter nav items based on user permissions
+  const permittedNavItems = allNavItems.filter(item => {
+    if (isAdmin) return true;
+    return userPerms.includes(item.requiredPerm);
+  });
 
   return (
     <aside className="sidebar-wrapper">
@@ -112,12 +139,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation List */}
-      <div style={{ padding: '1rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', flex: 1 }}>
+      <div style={{ padding: '1rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', flex: 1, overflowY: 'auto' }}>
         <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', padding: '0 0.5rem 0.4rem 0.5rem' }}>
-          القائمة الرئيسية
+          الأقسام المصرح بها
         </div>
 
-        {navItems.map(item => {
+        {permittedNavItems.map(item => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
@@ -154,44 +181,58 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           );
         })}
+
+        {permittedNavItems.length === 0 && (
+          <div style={{ padding: '1.5rem 0.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+            لا توجد أقسام مفعلة لحسابك حالياً
+          </div>
+        )}
       </div>
 
-      {/* Technician / Active User Profile Footer */}
-      <div
-        onClick={onOpenUserSwitcher}
-        style={{
-          padding: '1rem',
-          borderTop: '1px solid var(--border-color)',
-          background: 'var(--bg-card-hover)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          cursor: onOpenUserSwitcher ? 'pointer' : 'default',
-          transition: 'background 0.2s ease'
-        }}
-        title="انقر لتغيير المستخدم / المهندس النشط المسجل باسمه العمليات"
-      >
-        <div style={{
-          width: '36px',
-          height: '36px',
-          borderRadius: '50%',
-          background: '#e0f2fe',
-          color: '#0284c7',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0
-        }}>
-          <UserCheck size={18} />
-        </div>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {currentUser?.name || 'ENG Abdelrahman'}
+      {/* User Profile & Logout Footer */}
+      <div style={{
+        padding: '0.85rem 1rem',
+        borderTop: '1px solid var(--border-color)',
+        background: 'var(--bg-card-hover)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.65rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            background: isAdmin ? '#f5f3ff' : '#e0f2fe',
+            color: isAdmin ? '#7c3aed' : '#0284c7',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            {isAdmin ? <ShieldCheck size={18} /> : <UserCheck size={18} />}
           </div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>
-            {currentUser?.role || 'مهندس الصيانة المسؤول'}
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {currentUser?.name || 'مستخدم النظام'}
+            </div>
+            <div style={{ fontSize: '0.7rem', color: isAdmin ? '#7c3aed' : 'var(--primary)', fontWeight: 700 }}>
+              {isAdmin ? 'مدير النظام (Admin)' : (currentUser?.role || 'فني صيانة')}
+            </div>
           </div>
         </div>
+
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="btn btn-secondary btn-sm"
+            style={{ width: '100%', justifyContent: 'center', color: '#ef4444', padding: '0.35rem' }}
+            title="تسجيل الخروج من الحساب"
+          >
+            <LogOut size={14} />
+            <span>تسجيل الخروج</span>
+          </button>
+        )}
       </div>
     </aside>
   );

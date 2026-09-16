@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Asset } from '../types';
-import { X, QrCode, Camera, Search, Laptop } from 'lucide-react';
+import { X, QrCode, Camera, Search, Laptop, Video, AlertCircle } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface QRScannerModalProps {
   assets: Asset[];
@@ -10,30 +11,72 @@ interface QRScannerModalProps {
 
 export const QRScannerModal: React.FC<QRScannerModalProps> = ({ assets, onSelectAsset, onClose }) => {
   const [manualCode, setManualCode] = useState('');
+  const [useLiveCamera, setUseLiveCamera] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+
+  const processDecodedText = (decodedText: string) => {
+    const cleanText = decodedText.trim();
+    // Match by ID, serial, or formatted string
+    const found = assets.find(a => 
+      a.id.toLowerCase() === cleanText.toLowerCase() ||
+      a.serialNumber.toLowerCase() === cleanText.toLowerCase() ||
+      `noh-asset:${a.id.toLowerCase()}` === cleanText.toLowerCase() ||
+      cleanText.toLowerCase().includes(a.id.toLowerCase())
+    );
+
+    if (found) {
+      if (html5QrCodeRef.current) {
+        html5QrCodeRef.current.stop().catch(() => {});
+      }
+      onSelectAsset(found);
+    } else {
+      alert(`تم قراءة الكود: "${decodedText}" ولكن لم يتم العثور على جهاز مطابق في النظام.`);
+    }
+  };
 
   const handleManualSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualCode.trim()) return;
-
-    // Search by ID or Serial Number
-    const found = assets.find(a => 
-      a.id.toLowerCase() === manualCode.trim().toLowerCase() ||
-      a.serialNumber.toLowerCase() === manualCode.trim().toLowerCase() ||
-      `noh-asset:${a.id.toLowerCase()}` === manualCode.trim().toLowerCase()
-    );
-
-    if (found) {
-      onSelectAsset(found);
-    } else {
-      alert(`لم يتم العثور على جهاز بالكود أو السيريال: ${manualCode}`);
-    }
+    processDecodedText(manualCode);
   };
+
+  useEffect(() => {
+    if (useLiveCamera) {
+      setCameraError(null);
+      const scannerId = 'reader-container';
+      const scanner = new Html5Qrcode(scannerId);
+      html5QrCodeRef.current = scanner;
+
+      scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => {
+          processDecodedText(decodedText);
+        },
+        () => {
+          // ignore scan frame errors
+        }
+      ).catch(err => {
+        console.warn('Camera error:', err);
+        setCameraError('تعذر فتح الكاميرا (يرجى التحقق من إذن الوصول للكاميرا أو استخدام الإدخال اليدوي).');
+        setUseLiveCamera(false);
+      });
+    }
+
+    return () => {
+      if (html5QrCodeRef.current) {
+        html5QrCodeRef.current.stop().catch(() => {});
+        html5QrCodeRef.current = null;
+      }
+    };
+  }, [useLiveCamera]);
 
   const sampleAssets = assets.slice(0, 6);
 
   return (
     <div className="modal-backdrop">
-      <div className="modal-content" style={{ maxWidth: '600px' }}>
+      <div className="modal-content" style={{ maxWidth: '620px' }}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ background: '#e0f2fe', color: '#0284c7', padding: '8px', borderRadius: '8px' }}>
@@ -42,7 +85,7 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({ assets, onSelect
             <div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>ماسح الباركود و QR Code السريع</h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                فحص أجهزة مستشفى نيل الأمل بالكاميرا أو الكود المباشر
+                فحص أجهزة مستشفى نيل الأمل بالكاميرا الحية أو الكود المباشر
               </p>
             </div>
           </div>
@@ -53,12 +96,12 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({ assets, onSelect
 
         <div className="modal-body">
           
-          {/* Simulated Camera Scanner Viewfinder */}
+          {/* Camera Viewfinder or Live Stream */}
           <div style={{
             position: 'relative',
             background: '#090d16',
             borderRadius: 'var(--radius-md)',
-            height: '220px',
+            minHeight: '220px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -68,36 +111,74 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({ assets, onSelect
             border: '2px dashed #0284c7',
             marginBottom: '1.25rem'
           }}>
-            {/* Animated Laser Scanning Line */}
-            <div style={{
-              position: 'absolute',
-              top: '20%',
-              left: '10%',
-              right: '10%',
-              height: '3px',
-              background: 'linear-gradient(90deg, transparent, #38bdf8, transparent)',
-              boxShadow: '0 0 15px #38bdf8',
-              animation: 'slideUp 2s infinite alternate ease-in-out'
-            }} />
+            {useLiveCamera ? (
+              <div id="reader-container" style={{ width: '100%', height: '100%', minHeight: '220px' }} />
+            ) : (
+              <>
+                {/* Animated Laser Scanning Line */}
+                <div style={{
+                  position: 'absolute',
+                  top: '20%',
+                  left: '10%',
+                  right: '10%',
+                  height: '3px',
+                  background: 'linear-gradient(90deg, transparent, #38bdf8, transparent)',
+                  boxShadow: '0 0 15px #38bdf8',
+                  animation: 'slideUp 2s infinite alternate ease-in-out'
+                }} />
 
-            <div style={{
-              width: '140px',
-              height: '140px',
-              border: '2px solid rgba(56, 189, 248, 0.6)',
-              borderRadius: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(2, 132, 199, 0.1)'
-            }}>
-              <Camera size={38} color="#38bdf8" />
-              <span style={{ fontSize: '0.75rem', marginTop: '6px', color: '#cbd5e1' }}>وجه الكاميرا نحو الملصق</span>
-            </div>
+                <div style={{
+                  width: '130px',
+                  height: '130px',
+                  border: '2px solid rgba(56, 189, 248, 0.6)',
+                  borderRadius: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(2, 132, 199, 0.1)',
+                  padding: '1rem',
+                  textAlign: 'center'
+                }}>
+                  <Camera size={34} color="#38bdf8" />
+                  <span style={{ fontSize: '0.72rem', marginTop: '6px', color: '#cbd5e1' }}>وجه الكاميرا نحو الملصق</span>
+                </div>
+              </>
+            )}
           </div>
 
+          {/* Toggle Live Camera Button */}
+          <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
+            <button
+              type="button"
+              onClick={() => setUseLiveCamera(!useLiveCamera)}
+              className={`btn btn-sm ${useLiveCamera ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ gap: '8px' }}
+            >
+              <Video size={16} />
+              <span>{useLiveCamera ? 'إيقاف تشغيل الكاميرا الحية' : 'تشغيل كاميرا الويب / الموبايل المباشرة'}</span>
+            </button>
+          </div>
+
+          {cameraError && (
+            <div style={{
+              padding: '0.65rem 0.85rem',
+              background: '#fef2f2',
+              color: '#dc2626',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginBottom: '1rem'
+            }}>
+              <AlertCircle size={16} />
+              <span>{cameraError}</span>
+            </div>
+          )}
+
           {/* Quick Code Input */}
-          <form onSubmit={handleManualSearch} style={{ marginBottom: '1.5rem' }}>
+          <form onSubmit={handleManualSearch} style={{ marginBottom: '1.25rem' }}>
             <label className="form-label">إدخال كود الجهاز أو الرقم التسلسلي يدوياً:</label>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <input
@@ -122,7 +203,7 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({ assets, onSelect
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{assets.length} أجهزة متوفرة</span>
             </div>
 
-            <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <div style={{ maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {sampleAssets.map(asset => (
                 <div
                   key={asset.id}
@@ -160,3 +241,4 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({ assets, onSelect
     </div>
   );
 };
+
