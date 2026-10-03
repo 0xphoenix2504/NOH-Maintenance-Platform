@@ -138,7 +138,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
   };
 
   // Preset role helpers
-  const applyPreset = (presetType: 'admin' | 'tech' | 'viewer' | 'clear') => {
+  const applyPreset = (presetType: 'admin' | 'tech' | 'viewer' | 'end_user' | 'clear') => {
     if (presetType === 'admin') {
       setSelectedRole('admin');
       setSelectedPermissions(ALL_PERMISSIONS.map(p => p.key));
@@ -150,6 +150,10 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
     } else if (presetType === 'viewer') {
       setSelectedRole('user');
       setSelectedPermissions(['dashboard', 'tickets', 'assets']);
+      setSelectedStatus('active');
+    } else if (presetType === 'end_user') {
+      setSelectedRole('end_user');
+      setSelectedPermissions([]);
       setSelectedStatus('active');
     } else if (presetType === 'clear') {
       setSelectedPermissions([]);
@@ -325,6 +329,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
             <option value="admin">مدير نظام (Admin)</option>
             <option value="technician">فني صيانة</option>
             <option value="user">مستخدم عادي</option>
+            <option value="end_user">مستخدم نهائي (End User)</option>
           </select>
 
           <select
@@ -399,6 +404,10 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                       ) : account.role === 'technician' ? (
                         <span className="badge badge-spare">
                           🔧 فني صيانة
+                        </span>
+                      ) : account.role === 'end_user' ? (
+                        <span className="badge" style={{ background: '#fdf4ff', color: '#a21caf', border: '1px solid rgba(162, 28, 175, 0.3)' }}>
+                          🎫 مستخدم نهائي
                         </span>
                       ) : (
                         <span className="badge">
@@ -520,6 +529,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                     <option value="admin">👑 مدير نظام كامل (Admin)</option>
                     <option value="technician">🔧 مهندس صيانة (Technician)</option>
                     <option value="user">👤 مستخدم / مسؤول عهدة (User)</option>
+                    <option value="end_user">🎫 مستخدم نهائي / تقديم بلاغات (End User)</option>
                   </select>
                 </div>
 
@@ -563,6 +573,13 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                     className="btn btn-secondary btn-sm"
                   >
                     👁️ مشاهدة فقط (لوحة التحكم والأجهزة)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyPreset('end_user')}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    🎫 مستخدم نهائي (بوابة البلاغات فقط)
                   </button>
                   <button
                     type="button"
