@@ -16,7 +16,7 @@ export const PreventiveFormModal: React.FC<PreventiveFormModalProps> = ({
   const [title, setTitle] = useState(initialSchedule?.title || '');
   const [department, setDepartment] = useState(initialSchedule?.department || 'الدور الثالث - جناح العمليات الكبرى');
   const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly' | 'quarterly'>(initialSchedule?.frequency || 'monthly');
-  const [assignedTechnician, setAssignedTechnician] = useState(initialSchedule?.assignedTechnician || 'ENG Abdelrahman');
+  const [assignedTechnician, setAssignedTechnician] = useState(initialSchedule?.assignedTechnician || 'م. أحمد النجار');
   
   const defaultDueDate = () => {
     const d = new Date();
@@ -151,7 +151,7 @@ export const PreventiveFormModal: React.FC<PreventiveFormModalProps> = ({
                   className="form-control"
                   value={assignedTechnician}
                   onChange={(e) => setAssignedTechnician(e.target.value)}
-                  placeholder="ENG Abdelrahman"
+                  placeholder="مثال: م. أحمد النجار"
                   required
                 />
               </div>

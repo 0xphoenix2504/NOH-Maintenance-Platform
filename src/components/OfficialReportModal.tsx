@@ -91,9 +91,9 @@ export const OfficialReportModal: React.FC<OfficialReportModalProps> = ({ ticket
     type: 'Laptop',
     brand: 'Dell',
     model: 'Latitude E5470',
-    serialNumber: 'BNLMVD2',
-    department: 'الدور الرابع - PICCU',
-    currentUser: 'عبدالرحمن فتحي'
+    serialNumber: 'SN-DEMO-001',
+    department: 'قسم الأطفال - الدور الرابع',
+    currentUser: 'مسؤول العهدة / التمريض'
   };
 
   const sparePartsListText = ticket.sparePartsUsed && ticket.sparePartsUsed.length > 0

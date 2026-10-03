@@ -271,7 +271,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
                     type="text"
                     className="form-control"
                     style={{ paddingRight: '2.4rem' }}
-                    placeholder="مثال: admin أو m.tarek@nileofhope.org"
+                    placeholder="مثال: admin أو it.admin@noh.local"
                     value={loginIdentifier}
                     onChange={(e) => setLoginIdentifier(e.target.value)}
                     required
@@ -359,7 +359,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
                   <input
                     type="email"
                     className="form-control"
-                    placeholder="ahmed@nileofhope.org"
+                    placeholder="ahmed@noh.local"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                   />

@@ -23,11 +23,11 @@ export interface Asset {
   type: DeviceType;                // نوع الجهاز
   brand: string;                   // الماركة e.g. Dell
   model: string;                   // الموديل e.g. Latitude E5470
-  serialNumber: string;            // الرقم التسلسلي (Serial Number) e.g. BNLMVD2
-  department: string;              // الموقع / القسم e.g. الدور الرابع - PICCU
+  serialNumber: string;            // الرقم التسلسلي (Serial Number) e.g. SN-DEMO-1002
+  department: string;              // الموقع / القسم e.g. وحدة العناية المركزة
   floor: string;                   // الدور
   roomOrUnit: string;              // الوحدة / الغرفة
-  currentUser: string;             // اسم المستخدم / العهدة e.g. عبدالرحمن فتحي
+  currentUser: string;             // اسم المستخدم / العهدة e.g. أخصائي تمريض / طبيب العناية
   userRole?: string;               // المسمى الوظيفي
   status: DeviceStatus;            // حالة الجهاز
   purchaseDate?: string;           // تاريخ الشراء
@@ -92,7 +92,7 @@ export interface MaintenanceTicket {
   assetId: string;                     // كود الجهاز
   assetDetails?: Partial<Asset>;       // نسخة من بيانات الجهاز وقت البلاغ
   
-  technicianName: string;              // اسم الفني المسؤول e.g. ENG Abdelrahman
+  technicianName: string;              // اسم الفني المسؤول e.g. مهندس الدعم الفني IT
   technicianId?: string;
   
   reportDateTime: string;              // تاريخ ووقت البلاغ e.g. 2026-09-03T15:00
@@ -102,10 +102,10 @@ export interface MaintenanceTicket {
   issueCategory: IssueCategory;        // نوع العطل e.g. هاردوير
   priority: PriorityLevel;             // الأولوية
   
-  userProblemDescription: string;      // وصف المستخدم للمشكلة e.g. الويندوز مش شغال و فيه شاشة سودا
+  userProblemDescription: string;      // وصف المستخدم للمشكلة e.g. الجهاز لا يعمل أو توقف الشاشة
   
-  diagnosis: string;                   // التشخيص (السبب الجذري) e.g. عطل في الهارد
-  actionTaken: string;                 // الإجراء المتخذ e.g. تم تغيير الهارد بهارد جديد "من غير ممتلكات المستشفى" للضرورة القصوى
+  diagnosis: string;                   // التشخيص (السبب الجذري) e.g. عطل في وحدة التخزين
+  actionTaken: string;                 // الإجراء المتخذ e.g. تم استبدال وحدة التخزين واختبار النظام
   
   sparePartsUsed: UsedSparePart[];     // قطع الغيار المستخدمة
   totalCost: number;                   // التكلفة الإجمالية إن وجدت
@@ -175,11 +175,11 @@ export interface FieldChange {
 export interface AuditLog {
   id: string;
   timestamp: string;               // ISO 8601 string
-  userName: string;                // القائم بالإجراء e.g. ENG Abdelrahman
+  userName: string;                // القائم بالإجراء e.g. مهندس الدعم الفني IT
   userRole?: string;               // وظيفته e.g. مهندس تكنولوجيا المعلومات
   actionType: LogActionType;       // نوع الإجراء
   targetType: LogTargetType;       // الهدف
-  targetId: string;                // معرف العنصر المستهدف e.g. 4th-PCCU-LPTP02
+  targetId: string;                // معرف العنصر المستهدف e.g. ASSET-001
   targetTitle: string;             // عنوان أو اسم العنصر
   description: string;             // الوصف المقروء للعملية بالعربية
   details?: {

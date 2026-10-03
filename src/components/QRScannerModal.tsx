@@ -16,14 +16,34 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({ assets, onSelect
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
   const processDecodedText = (decodedText: string) => {
+    if (!decodedText || typeof decodedText !== 'string') return;
     const cleanText = decodedText.trim();
-    // Match by ID, serial, or formatted string
-    const found = assets.find(a => 
-      a.id.toLowerCase() === cleanText.toLowerCase() ||
-      a.serialNumber.toLowerCase() === cleanText.toLowerCase() ||
-      `noh-asset:${a.id.toLowerCase()}` === cleanText.toLowerCase() ||
-      cleanText.toLowerCase().includes(a.id.toLowerCase())
-    );
+
+    // 1. Strict length validation (max 120 chars)
+    if (cleanText.length > 120) {
+      alert('تم رفض رمز QR: حجم الرمز يتجاوز الحد الأقصى المسموح للأصول.');
+      return;
+    }
+
+    // 2. Reject URLs, javascript:, data: schemes or HTML injection patterns
+    if (/^(https?|ftp|file|javascript|data):/i.test(cleanText) || /[<>"'\\]/.test(cleanText)) {
+      alert('تم رفض رمز QR: محتوى الرمز يحتوي على صيغة غير مصرح بها.');
+      return;
+    }
+
+    // 3. Strict asset matching by ID, Serial, or official standard QR prefix
+    const normalized = cleanText.toLowerCase();
+    const found = assets.find(a => {
+      const aId = a.id.toLowerCase();
+      const aSn = a.serialNumber ? a.serialNumber.toLowerCase() : '';
+      return (
+        aId === normalized ||
+        (aSn && aSn === normalized) ||
+        normalized === `noh-asset:${aId}` ||
+        normalized.startsWith(`asset:${aId}|`) ||
+        (aSn && normalized.includes(`sn:${aSn}`))
+      );
+    });
 
     if (found) {
       if (html5QrCodeRef.current) {
@@ -31,7 +51,8 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({ assets, onSelect
       }
       onSelectAsset(found);
     } else {
-      alert(`تم قراءة الكود: "${decodedText}" ولكن لم يتم العثور على جهاز مطابق في النظام.`);
+      const safeDisplay = cleanText.slice(0, 30).replace(/[^a-zA-Z0-9\-_:.]/g, '');
+      alert(`تم قراءة الرمز: "${safeDisplay || '***'}" ولكن لم يتم العثور على أصل مطابق في سجل المستشفى.`);
     }
   };
 

@@ -140,7 +140,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>مستشفى نيل الأمل لجراحات الأطفال</span>
             </div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>
-              مرحباً بك، {currentUser?.name || 'ENG Abdelrahman'} 👨‍💻
+              مرحباً بك، {currentUser?.name || 'مهندس الصيانة'} 👨‍💻
             </h1>
             <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
               لديك <strong style={{ color: '#ef4444' }}>{activeTickets.length} بلاغات قيد المتابعة</strong> و <strong style={{ color: '#8b5cf6' }}>{needsPartsTickets.length} جهاز بانتظار قطع غيار</strong> من المخزن.

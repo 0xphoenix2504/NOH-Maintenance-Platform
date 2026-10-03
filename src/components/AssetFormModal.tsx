@@ -221,7 +221,7 @@ export const AssetFormModal: React.FC<AssetFormModalProps> = ({ initialAsset, on
                   className="form-control"
                   value={currentUser}
                   onChange={(e) => setCurrentUser(e.target.value)}
-                  placeholder="مثال: عبدالرحمن فتحي"
+                  placeholder="مثال: د. محمد سامي / أخصائي تمريض"
                   required
                 />
               </div>

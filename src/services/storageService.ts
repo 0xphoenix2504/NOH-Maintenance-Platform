@@ -292,9 +292,9 @@ export const storageService = {
     const firstAdmin = this.getAccounts()[0];
     return {
       id: firstAdmin?.id || 'acc-admin',
-      name: firstAdmin?.name || 'ENG Abdelrahman',
-      role: firstAdmin?.jobTitle || 'مدير النظام',
-      department: firstAdmin?.department || 'تكنولوجيا المعلومات',
+      name: firstAdmin?.name || 'م. أحمد النجار (مدير النظام)',
+      role: firstAdmin?.jobTitle || 'مدير النظام ومسؤول الصيانة',
+      department: firstAdmin?.department || 'قسم تكنولوجيا المعلومات IT',
       permissions: firstAdmin?.permissions || []
     };
   },
@@ -324,8 +324,8 @@ export const storageService = {
     const fullLog: AuditLog = {
       id: logEntry.id || `log-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       timestamp: logEntry.timestamp || new Date().toISOString(),
-      userName: logEntry.userName || authUser?.name || 'ENG Abdelrahman',
-      userRole: logEntry.userRole || authUser?.jobTitle || 'مهندس تكنولوجيا المعلومات',
+      userName: logEntry.userName || authUser?.name || 'م. أحمد النجار',
+      userRole: logEntry.userRole || authUser?.jobTitle || 'مهندس تكنولوجيا المعلومات IT',
       actionType: logEntry.actionType,
       targetType: logEntry.targetType,
       targetId: logEntry.targetId,

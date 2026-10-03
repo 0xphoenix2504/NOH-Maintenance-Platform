@@ -27,7 +27,7 @@ export const TicketFormModal: React.FC<TicketFormModalProps> = ({
 
   const [id, setId] = useState(initialTicket?.id || defaultReportId);
   const [assetId, setAssetId] = useState(initialTicket?.assetId || initialAssetId || (assets[0]?.id || ''));
-  const [technicianName, setTechnicianName] = useState(initialTicket?.technicianName || 'ENG Abdelrahman');
+  const [technicianName, setTechnicianName] = useState(initialTicket?.technicianName || 'م. أحمد النجار');
   
   const [reportDateTime, setReportDateTime] = useState(initialTicket?.reportDateTime || defaultDateTime);
   const [resolutionDateTime, setResolutionDateTime] = useState(initialTicket?.resolutionDateTime || defaultDateTime);
@@ -43,7 +43,7 @@ export const TicketFormModal: React.FC<TicketFormModalProps> = ({
   const [statusAfterMaintenance, setStatusAfterMaintenance] = useState<PostMaintenanceStatus>(initialTicket?.statusAfterMaintenance || 'repaired');
   
   const [notesAndRecommendations, setNotesAndRecommendations] = useState(initialTicket?.notesAndRecommendations || '');
-  const [technicianSignature, setTechnicianSignature] = useState(initialTicket?.technicianSignature || 'ENG Abdelrahman (IT Dept)');
+  const [technicianSignature, setTechnicianSignature] = useState(initialTicket?.technicianSignature || 'م. أحمد النجار (قسم تكنولوجيا المعلومات)');
   const [userSignature, setUserSignature] = useState(initialTicket?.userSignature || '');
 
   // Spare Parts state
@@ -206,7 +206,7 @@ export const TicketFormModal: React.FC<TicketFormModalProps> = ({
                     value={technicianName}
                     onChange={(e) => setTechnicianName(e.target.value)}
                     required
-                    placeholder="ENG Abdelrahman"
+                    placeholder="مثال: م. أحمد النجار"
                   />
                 </div>
 
@@ -527,7 +527,7 @@ export const TicketFormModal: React.FC<TicketFormModalProps> = ({
                     className="form-control"
                     value={technicianSignature}
                     onChange={(e) => setTechnicianSignature(e.target.value)}
-                    placeholder="ENG Abdelrahman"
+                    placeholder="مثال: م. أحمد النجار"
                   />
                 </div>
 
