@@ -527,6 +527,9 @@ export const storageService = {
 
   addTicket(ticket: MaintenanceTicket, user?: UserProfile | UserAccount): { tickets: MaintenanceTicket[]; logs: AuditLog[]; assets: Asset[]; parts: SparePartInventoryItem[] } {
     const activeUser = user || this.getCurrentUser();
+    if (activeUser && activeUser.role === 'end_user') {
+      throw new Error('غير مصرح للمستخدم النهائي بإنشاء تذاكر فنية مباشرة؛ يرجى استخدام نموذج تقديم البلاغات الموجه');
+    }
     
     // Ensure initial status history exists
     if (!ticket.statusHistory || ticket.statusHistory.length === 0) {
@@ -607,10 +610,14 @@ export const storageService = {
   },
 
   updateTicket(ticket: MaintenanceTicket, user?: UserProfile | UserAccount): { tickets: MaintenanceTicket[]; logs: AuditLog[]; assets: Asset[] } {
+    const activeUser = user || this.getCurrentUser();
+    if (activeUser && activeUser.role === 'end_user') {
+      throw new Error('غير مصرح للمستخدم النهائي بتعديل تفاصيل أو حالة تذاكر الصيانة مباشرة');
+    }
+
     const tickets = this.getTickets();
     const index = tickets.findIndex(t => t.id === ticket.id);
     const oldTicket = index !== -1 ? tickets[index] : null;
-    const activeUser = user || this.getCurrentUser();
 
     // Track status history if status changed
     if (oldTicket && (oldTicket.status !== ticket.status || oldTicket.statusAfterMaintenance !== ticket.statusAfterMaintenance)) {
@@ -698,12 +705,15 @@ export const storageService = {
   },
 
   deleteTicket(ticketId: string, user?: UserProfile | UserAccount): { tickets: MaintenanceTicket[]; logs: AuditLog[] } {
+    const activeUser = user || this.getCurrentUser();
+    if (activeUser && activeUser.role === 'end_user') {
+      throw new Error('غير مصرح للمستخدم النهائي بحذف تذاكر الصيانة');
+    }
+
     const tickets = this.getTickets();
     const targetTicket = tickets.find(t => t.id === ticketId);
     const updatedTickets = tickets.filter(t => t.id !== ticketId);
     this.saveTickets(updatedTickets);
-
-    const activeUser = user || this.getCurrentUser();
     const logs = this.addLog({
       userName: activeUser.name,
       userRole: 'jobTitle' in activeUser ? activeUser.jobTitle : activeUser.role,
