@@ -252,6 +252,32 @@ export const OfficialReportModal: React.FC<OfficialReportModalProps> = ({ ticket
                     {ticket.userProblemDescription || 'لا يوجد وصف مدخل'}
                   </div>
                 </div>
+
+                {(ticket.problemType || ticket.attachment) && (
+                  <div style={{
+                    marginTop: '8px',
+                    padding: '8px',
+                    background: '#f8fafc',
+                    borderRadius: '4px',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '11px'
+                  }}>
+                    <div style={{ fontWeight: 800, color: '#0369a1', marginBottom: '4px' }}>
+                      📋 إجابات استمارة المستخدم الموجهة:
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                      <div>المشكلة: <strong>{ticket.problemType || '—'}</strong></div>
+                      <div>تكررت سابقاً: <strong>{ticket.happenedBefore ? 'نعم' : 'لا'}</strong></div>
+                      <div>الموقع: <strong>{ticket.location || '—'}</strong></div>
+                      <div>الدور: <strong>{ticket.floor || '—'}</strong></div>
+                    </div>
+                    {ticket.attachment && (
+                      <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>📎 المرفق: <strong>{ticket.attachment.fileName}</strong> (صورة معتمدة ومرفقة بالبلاغ)</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Page 1 Footer */}
