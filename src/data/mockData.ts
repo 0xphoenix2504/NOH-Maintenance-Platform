@@ -238,6 +238,52 @@ export const INITIAL_TICKETS: MaintenanceTicket[] = [
     userSignature: 'د. سامح ممدوح',
     status: 'closed',
     createdAt: '2026-09-01T08:00:00'
+  },
+  {
+    id: 'T-2026-0918',
+    title: 'Printer - ميامي - الدور الثالث',
+    assetId: '1st-OPD-PRN02',
+    technicianName: 'م. أحمد النجار',
+    reportDateTime: '2026-09-18T10:30',
+    resolutionDateTime: '2026-09-18T10:30',
+    reportingSource: 'user_report',
+    issueCategory: 'printer',
+    priority: 'medium',
+    userProblemDescription: 'طابعة الاستقبال لا تسحب الورق وتصدر صوتاً غير طبيعي',
+    problemType: 'Printer',
+    happenedBefore: true,
+    location: 'ميامي',
+    floor: 'الدور الثالث',
+    requesterId: 'acc-enduser-01',
+    requesterName: 'أ. سامي يوسف (مستخدم نهائي)',
+    status: 'in_progress',
+    statusAfterMaintenance: 'under_observation',
+    diagnosis: 'جاري فحص رول سحب الورق',
+    actionTaken: 'تم استلام التذكرة من قبل الدعم الفني',
+    sparePartsUsed: [],
+    totalCost: 0,
+    downtimeFormatted: 'قيد المتابعة',
+    notesAndRecommendations: 'متابعة تشغيلية',
+    createdAt: '2026-09-18T10:30:00',
+    updatedAt: '2026-09-18T11:00:00',
+    statusHistory: [
+      {
+        id: 'sh-01',
+        oldStatus: undefined,
+        newStatus: 'open',
+        changedAt: '2026-09-18T10:30:00',
+        changedBy: 'أ. سامي يوسف',
+        notes: 'تم تقديم البلاغ بنجاح'
+      },
+      {
+        id: 'sh-02',
+        oldStatus: 'open',
+        newStatus: 'in_progress',
+        changedAt: '2026-09-18T11:00:00',
+        changedBy: 'م. أحمد النجار',
+        notes: 'بدء الفحص التشغيلي من قبل فريق IT'
+      }
+    ]
   }
 ];
 
@@ -418,7 +464,22 @@ export const INITIAL_ACCOUNTS: UserAccount[] = [
     department: 'شؤون الأجهزة والعهد',
     jobTitle: 'مسؤولة العهد وقواعد البيانات',
     permissions: [], // Default: zero permissions until admin grants them
-    createdAt: '2026-09-15T16:30:00'
+    createdAt: '2026-09-15T16:30:00',
+    authSource: 'local'
+  },
+  {
+    id: 'acc-enduser-01',
+    name: 'أ. سامي يوسف (مستخدم نهائي)',
+    username: 'enduser',
+    email: 'sami.youssef@noh.local',
+    password: 'User@Demo2026',
+    role: 'end_user',
+    status: 'active',
+    department: 'قسم العمليات الجراحية',
+    jobTitle: 'منسق إداري بالقسم',
+    permissions: [], // End users have no admin/tech tab permissions
+    createdAt: '2026-09-18T10:00:00',
+    authSource: 'local'
   }
 ];
 

@@ -115,7 +115,9 @@ export const TicketFormModal: React.FC<TicketFormModalProps> = ({
     const dt = calculateDowntime(reportDateTime, resolutionDateTime);
 
     const updatedTicket: MaintenanceTicket = {
+      ...initialTicket,
       id: id.trim(),
+      title: initialTicket?.title,
       assetId,
       technicianName,
       reportDateTime,
@@ -135,7 +137,16 @@ export const TicketFormModal: React.FC<TicketFormModalProps> = ({
       technicianSignature,
       userSignature,
       status: statusAfterMaintenance === 'repaired' ? 'resolved' : statusAfterMaintenance === 'needs_parts' ? 'pending_parts' : 'in_progress',
-      createdAt: initialTicket?.createdAt || new Date().toISOString()
+      createdAt: initialTicket?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      problemType: initialTicket?.problemType,
+      happenedBefore: initialTicket?.happenedBefore,
+      location: initialTicket?.location,
+      floor: initialTicket?.floor,
+      attachment: initialTicket?.attachment,
+      requesterId: initialTicket?.requesterId,
+      requesterName: initialTicket?.requesterName,
+      statusHistory: initialTicket?.statusHistory
     };
 
     onSave(updatedTicket);
@@ -179,6 +190,72 @@ export const TicketFormModal: React.FC<TicketFormModalProps> = ({
         <form onSubmit={handleSubmit} style={{ display: 'contents' }}>
           <div className="modal-body">
             
+            {/* End User Guided Submission Details (Read-Only) */}
+            {(initialTicket?.problemType || initialTicket?.attachment) && (
+              <div style={{
+                background: 'var(--primary-light)',
+                border: '1px solid rgba(2, 132, 199, 0.3)',
+                padding: '1rem',
+                borderRadius: 'var(--radius-md)',
+                marginBottom: '1.5rem'
+              }}>
+                <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>🎫 بيانات استمارة المستخدم النهائي (End User Guided Answers):</span>
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: initialTicket.attachment ? '0.75rem' : 0 }}>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>نوع المشكلة: </span>
+                    <strong style={{ fontSize: '0.85rem' }}>{initialTicket.problemType || '—'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>تكررت المشكلة: </span>
+                    <strong style={{ fontSize: '0.85rem' }}>{initialTicket.happenedBefore ? 'نعم' : 'لا'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>الموقع: </span>
+                    <strong style={{ fontSize: '0.85rem' }}>{initialTicket.location || '—'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>الدور: </span>
+                    <strong style={{ fontSize: '0.85rem' }}>{initialTicket.floor || '—'}</strong>
+                  </div>
+                  {initialTicket.requesterName && (
+                    <div>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>مقدم البلاغ: </span>
+                      <strong style={{ fontSize: '0.85rem' }}>{initialTicket.requesterName}</strong>
+                    </div>
+                  )}
+                </div>
+
+                {initialTicket.attachment && (
+                  <div style={{
+                    marginTop: '0.5rem',
+                    paddingTop: '0.65rem',
+                    borderTop: '1px dashed rgba(2, 132, 199, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                  }}>
+                    <img
+                      src={initialTicket.attachment.dataUrl}
+                      alt="User Attachment"
+                      style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border-color)', cursor: 'pointer' }}
+                      onClick={() => window.open(initialTicket.attachment?.dataUrl, '_blank')}
+                      title="انقر لفتح الصورة بحجم كامل"
+                    />
+                    <div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>
+                        📎 المرفق: {initialTicket.attachment.fileName}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                        {(initialTicket.attachment.fileSize / (1024 * 1024)).toFixed(2)} MB • {initialTicket.attachment.fileType}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Step 1: بيانات التقرير */}
             <div style={{ marginBottom: '1.5rem' }}>
               <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}>

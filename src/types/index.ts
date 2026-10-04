@@ -87,6 +87,72 @@ export interface UsedSparePart {
   origin: 'hospital_inventory' | 'external_emergency' | 'under_warranty'; // ممتلكات المستشفى أو خارجي
 }
 
+// ==================== END USER GUIDED FORM CONSTANTS & TYPES ====================
+export const PROBLEM_TYPE_OPTIONS = [
+  'PrimeCare',
+  'Pacs',
+  'Computer',
+  'Printer',
+  'Laptop'
+] as const;
+export type ProblemTypeOption = typeof PROBLEM_TYPE_OPTIONS[number];
+
+export const HAPPENED_BEFORE_OPTIONS = ['نعم', 'لا'] as const;
+export type HappenedBeforeOption = typeof HAPPENED_BEFORE_OPTIONS[number];
+
+export const LOCATION_OPTIONS = ['ميامي', 'جناكليس'] as const;
+export type LocationOption = typeof LOCATION_OPTIONS[number];
+
+export const LOCATION_FLOORS = {
+  'جناكليس': [
+    'الدور الأول',
+    'الدور الثاني',
+    'الدور الثالث'
+  ],
+  'ميامي': [
+    'الدور الأول',
+    'الدور الثاني',
+    'الدور الثالث',
+    'الدور الرابع',
+    'الدور الخامس',
+    'الدور السادس',
+    'الدور السابع',
+    'الأداري'
+  ]
+} as const;
+
+export interface TicketAttachment {
+  id: string;
+  fileName: string;
+  fileType: string; // validated MIME (e.g. image/png, image/jpeg, image/webp)
+  fileSize: number; // in bytes
+  dataUrl: string;  // safe base64 / blob data
+  uploadedAt: string;
+}
+
+export interface TicketStatusChange {
+  id: string;
+  oldStatus?: TicketStatus | string;
+  newStatus: TicketStatus | string;
+  changedAt: string;
+  changedBy?: string;
+  notes?: string;
+}
+
+export interface EndUserTicketView {
+  id: string;
+  title: string;
+  problemType: string;
+  happenedBefore: boolean;
+  location: string;
+  floor: string;
+  attachment?: TicketAttachment;
+  status: TicketStatus;
+  createdAt: string;
+  updatedAt?: string;
+  statusHistory: TicketStatusChange[];
+}
+
 export interface MaintenanceTicket {
   id: string;                          // رقم التقرير e.g. R10-9-2026
   assetId: string;                     // كود الجهاز
@@ -122,6 +188,18 @@ export interface MaintenanceTicket {
   
   status: TicketStatus;
   createdAt: string;
+  updatedAt?: string;
+
+  // End User Structured Fields
+  title?: string;                      // عنوان البلاغ التلقائي
+  problemType?: ProblemTypeOption | string;
+  happenedBefore?: boolean;
+  location?: LocationOption | string;
+  floor?: string;
+  attachment?: TicketAttachment;
+  requesterId?: string;                // هوية المستخدم المنشئ للتحقق من المالك
+  requesterName?: string;              // اسم المستخدم المنشئ
+  statusHistory?: TicketStatusChange[];// سجل الحالات والمراحل الزمنية
 }
 
 export interface SparePartInventoryItem {
@@ -190,7 +268,7 @@ export interface AuditLog {
   };
 }
 
-export type UserRole = 'admin' | 'technician' | 'user';
+export type UserRole = 'admin' | 'technician' | 'user' | 'end_user';
 
 export type AccountStatus = 'active' | 'pending' | 'suspended';
 
@@ -216,6 +294,8 @@ export interface UserAccount {
   permissions: PermissionKey[];
   createdAt: string;
   lastLogin?: string;
+  externalId?: string; // LDAP / External Identity mapping
+  authSource?: 'local' | 'ldap'; // Default: 'local'
 }
 
 export interface UserProfile {

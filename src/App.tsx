@@ -23,6 +23,7 @@ import { ActivityLogView } from './components/ActivityLogView';
 import { UserManagementView } from './components/UserManagementView';
 import { AuthView } from './components/AuthView';
 import { PendingApprovalView } from './components/PendingApprovalView';
+import { EndUserPortalView } from './components/EndUserPortalView';
 import { OfficialReportModal } from './components/OfficialReportModal';
 import { TicketFormModal } from './components/TicketFormModal';
 import { AssetFormModal } from './components/AssetFormModal';
@@ -129,6 +130,7 @@ export const App: React.FC = () => {
   // Permitted Tabs Calculation & Auto-Guard
   const permittedTabs: NavTab[] = useMemo(() => {
     if (!authenticatedUser) return [];
+    if (authenticatedUser.role === 'end_user') return [];
     if (authenticatedUser.role === 'admin') {
       return ['dashboard', 'tickets', 'assets', 'inventory', 'preventive', 'logs', 'user_management'];
     }
@@ -300,7 +302,19 @@ export const App: React.FC = () => {
     return <AuthView onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // 2. IF LOGGED IN BUT ZERO PERMISSIONS / PENDING -> RENDER PENDING APPROVAL SCREEN
+  // 2. IF LOGGED IN AS END USER -> RENDER DEDICATED END USER PORTAL
+  if (authenticatedUser.role === 'end_user') {
+    return (
+      <EndUserPortalView
+        currentUser={authenticatedUser}
+        onLogout={handleLogout}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
+    );
+  }
+
+  // 3. IF LOGGED IN BUT ZERO PERMISSIONS / PENDING -> RENDER PENDING APPROVAL SCREEN
   if (authenticatedUser.status === 'pending' || (authenticatedUser.permissions.length === 0 && authenticatedUser.role !== 'admin')) {
     return (
       <PendingApprovalView
