@@ -12,7 +12,8 @@ import {
   Sparkles,
   ShieldCheck,
   Eye,
-  EyeOff
+  EyeOff,
+  CheckCircle2
 } from 'lucide-react';
 
 interface AuthViewProps {
@@ -98,7 +99,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
   };
 
   // Quick Demo Login helper
-  const handleQuickDemoLogin = (userType: 'admin' | 'tech' | 'pending') => {
+  const handleQuickDemoLogin = (userType: 'admin' | 'tech' | 'pending' | 'enduser') => {
     if (userType === 'admin') {
       const res = storageService.login('admin', 'admin');
       if (res.success && res.user) onLoginSuccess(res.user);
@@ -107,6 +108,9 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
       if (res.success && res.user) onLoginSuccess(res.user);
     } else if (userType === 'pending') {
       const res = storageService.login('sara', '123');
+      if (res.success && res.user) onLoginSuccess(res.user);
+    } else if (userType === 'enduser') {
+      const res = storageService.login('enduser', 'User@Demo2026');
       if (res.success && res.user) onLoginSuccess(res.user);
     }
   };
@@ -486,6 +490,19 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
                   <span>حساب جديد معلق (Zero Permissions)</span>
                 </div>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>sara / 123</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickDemoLogin('enduser')}
+                className="btn btn-secondary btn-sm"
+                style={{ justifyContent: 'space-between', padding: '0.45rem 0.75rem' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={15} color="#8b5cf6" />
+                  <span>مستخدم نهائي (End User - تقديم ومتابعة)</span>
+                </div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>enduser / 123</span>
               </button>
             </div>
           </div>
