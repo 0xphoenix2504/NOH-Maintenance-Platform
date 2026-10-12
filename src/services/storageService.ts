@@ -29,6 +29,7 @@ import {
   INITIAL_AUDIT_LOGS,
   INITIAL_ACCOUNTS
 } from '../data/mockData';
+import { supabaseService } from './supabaseService';
 
 const ASSETS_KEY = 'noh_maintenance_assets_v1';
 const TICKETS_KEY = 'noh_maintenance_tickets_v1';
@@ -168,6 +169,7 @@ export const storageService = {
     const updated = [...accounts, newAccount];
     this.saveAccounts(updated);
     this.setAuthenticatedUser(newAccount);
+    supabaseService.upsertAccount(newAccount).catch(err => console.warn('Supabase register sync skipped:', err));
 
     // Add Audit Log
     this.addLog({
@@ -223,6 +225,7 @@ export const storageService = {
       target.role = role;
       target.status = status;
       this.saveAccounts(accounts);
+      supabaseService.upsertAccount(target).catch(err => console.warn('Supabase update account sync skipped:', err));
 
       const performer = adminUser || this.getAuthenticatedUser() || { name: 'Admin', role: 'مدير النظام' };
       logs = this.addLog({
@@ -261,6 +264,7 @@ export const storageService = {
     const target = accounts.find(a => a.id === userId);
     const updated = accounts.filter(a => a.id !== userId);
     this.saveAccounts(updated);
+    supabaseService.deleteAccount(userId).catch(err => console.warn('Supabase delete account sync skipped:', err));
 
     const performer = adminUser || this.getAuthenticatedUser() || { name: 'Admin', role: 'مدير النظام' };
     const logs = this.addLog({
@@ -349,6 +353,7 @@ export const storageService = {
 
     const updated = [fullLog, ...logs];
     this.saveLogs(updated);
+    supabaseService.insertLog(fullLog).catch(err => console.warn('Supabase log sync skipped:', err));
     return updated;
   },
 
@@ -379,6 +384,7 @@ export const storageService = {
     const assets = this.getAssets();
     const updatedAssets = [asset, ...assets];
     this.saveAssets(updatedAssets);
+    supabaseService.upsertAsset(asset).catch(err => console.warn('Supabase add asset sync skipped:', err));
 
     const activeUser = user || this.getCurrentUser();
     const logs = this.addLog({
@@ -405,6 +411,7 @@ export const storageService = {
     if (index !== -1) {
       assets[index] = asset;
       this.saveAssets(assets);
+      supabaseService.upsertAsset(asset).catch(err => console.warn('Supabase update asset sync skipped:', err));
     }
 
     const activeUser = user || this.getCurrentUser();
@@ -470,6 +477,7 @@ export const storageService = {
     const targetAsset = assets.find(a => a.id === assetId);
     const updatedAssets = assets.filter(a => a.id !== assetId);
     this.saveAssets(updatedAssets);
+    supabaseService.deleteAsset(assetId).catch(err => console.warn('Supabase delete asset sync skipped:', err));
 
     const activeUser = user || this.getCurrentUser();
     const logs = this.addLog({
@@ -548,6 +556,7 @@ export const storageService = {
     const tickets = this.getTickets();
     const updatedTickets = [ticket, ...tickets];
     this.saveTickets(updatedTickets);
+    supabaseService.upsertTicket(ticket).catch(err => console.warn('Supabase add ticket sync skipped:', err));
     
     // 1. Automatically update asset status if needed
     let assets = this.getAssets();
@@ -556,12 +565,14 @@ export const storageService = {
       if (asset && asset.status !== 'operational') {
         asset.status = 'operational';
         this.saveAssets(assets);
+        supabaseService.upsertAsset(asset).catch(err => console.warn('Supabase asset status sync skipped:', err));
       }
     } else if (ticket.statusAfterMaintenance === 'needs_parts') {
       const asset = assets.find(a => a.id === ticket.assetId);
       if (asset && asset.status !== 'needs_parts') {
         asset.status = 'needs_parts';
         this.saveAssets(assets);
+        supabaseService.upsertAsset(asset).catch(err => console.warn('Supabase asset status sync skipped:', err));
       }
     }
 
@@ -581,6 +592,7 @@ export const storageService = {
             } else {
               foundPart.status = 'in_stock';
             }
+            supabaseService.upsertInventoryItem(foundPart).catch(err => console.warn('Supabase stock deduction sync skipped:', err));
           }
         }
       });
@@ -637,6 +649,7 @@ export const storageService = {
     if (index !== -1) {
       tickets[index] = ticket;
       this.saveTickets(tickets);
+      supabaseService.upsertTicket(ticket).catch(err => console.warn('Supabase update ticket sync skipped:', err));
     }
 
     // Reflect on asset status
@@ -646,12 +659,14 @@ export const storageService = {
       if (asset && asset.status !== 'operational') {
         asset.status = 'operational';
         this.saveAssets(assets);
+        supabaseService.upsertAsset(asset).catch(err => console.warn('Supabase asset status sync skipped:', err));
       }
     } else if (ticket.statusAfterMaintenance === 'needs_parts') {
       const asset = assets.find(a => a.id === ticket.assetId);
       if (asset && asset.status !== 'needs_parts') {
         asset.status = 'needs_parts';
         this.saveAssets(assets);
+        supabaseService.upsertAsset(asset).catch(err => console.warn('Supabase asset status sync skipped:', err));
       }
     }
 
@@ -714,6 +729,7 @@ export const storageService = {
     const targetTicket = tickets.find(t => t.id === ticketId);
     const updatedTickets = tickets.filter(t => t.id !== ticketId);
     this.saveTickets(updatedTickets);
+    supabaseService.deleteTicket(ticketId).catch(err => console.warn('Supabase delete ticket sync skipped:', err));
     const logs = this.addLog({
       userName: activeUser.name,
       userRole: 'jobTitle' in activeUser ? activeUser.jobTitle : activeUser.role,
@@ -905,6 +921,7 @@ export const storageService = {
     const tickets = this.getTickets();
     const updated = [newTicket, ...tickets];
     this.saveTickets(updated);
+    supabaseService.upsertTicket(newTicket).catch(err => console.warn('Supabase add end-user ticket sync skipped:', err));
 
     // Audit log
     this.addLog({
@@ -1014,6 +1031,7 @@ export const storageService = {
     const parts = this.getSpareParts();
     const updated = [newPart, ...parts];
     this.saveSpareParts(updated);
+    supabaseService.upsertInventoryItem(newPart).catch(err => console.warn('Supabase add part sync skipped:', err));
 
     const activeUser = user || this.getCurrentUser();
     const logs = this.addLog({
@@ -1048,6 +1066,7 @@ export const storageService = {
       }
       parts[index] = updatedPart;
       this.saveSpareParts(parts);
+      supabaseService.upsertInventoryItem(updatedPart).catch(err => console.warn('Supabase update part sync skipped:', err));
     }
 
     const activeUser = user || this.getCurrentUser();
@@ -1077,6 +1096,7 @@ export const storageService = {
     const targetPart = parts.find(p => p.id === partId);
     const updated = parts.filter(p => p.id !== partId);
     this.saveSpareParts(updated);
+    supabaseService.deleteInventoryItem(partId).catch(err => console.warn('Supabase delete part sync skipped:', err));
 
     const activeUser = user || this.getCurrentUser();
     const logs = this.addLog({
@@ -1110,6 +1130,7 @@ export const storageService = {
       }
       
       this.saveSpareParts(parts);
+      supabaseService.upsertInventoryItem(part).catch(err => console.warn('Supabase stock update sync skipped:', err));
 
       const activeUser = user || this.getCurrentUser();
       const isDeduction = deltaQty < 0;
@@ -1158,6 +1179,7 @@ export const storageService = {
     const schedules = this.getPreventiveSchedules();
     const updated = [schedule, ...schedules];
     this.savePreventiveSchedules(updated);
+    supabaseService.upsertPreventive(schedule).catch(err => console.warn('Supabase add preventive sync skipped:', err));
 
     const activeUser = user || this.getCurrentUser();
     const logs = this.addLog({
@@ -1182,6 +1204,7 @@ export const storageService = {
     if (index !== -1) {
       schedules[index] = schedule;
       this.savePreventiveSchedules(schedules);
+      supabaseService.upsertPreventive(schedule).catch(err => console.warn('Supabase update preventive sync skipped:', err));
     }
 
     const activeUser = user || this.getCurrentUser();
@@ -1206,6 +1229,7 @@ export const storageService = {
     const target = schedules.find(s => s.id === scheduleId);
     const updated = schedules.filter(s => s.id !== scheduleId);
     this.savePreventiveSchedules(updated);
+    supabaseService.deletePreventive(scheduleId).catch(err => console.warn('Supabase delete preventive sync skipped:', err));
 
     const activeUser = user || this.getCurrentUser();
     const logs = this.addLog({
@@ -1255,6 +1279,7 @@ export const storageService = {
       schedule.checklist = schedule.checklist.map(item => ({ ...item, done: false }));
 
       this.savePreventiveSchedules(schedules);
+      supabaseService.upsertPreventive(schedule).catch(err => console.warn('Supabase complete cycle sync skipped:', err));
 
       const activeUser = user || this.getCurrentUser();
       logs = this.addLog({
@@ -1296,6 +1321,7 @@ export const storageService = {
         }
 
         this.savePreventiveSchedules(schedules);
+        supabaseService.upsertPreventive(schedule).catch(err => console.warn('Supabase toggle checklist sync skipped:', err));
 
         const activeUser = user || this.getCurrentUser();
         logs = this.addLog({
@@ -1447,6 +1473,49 @@ export const storageService = {
     }
 
     return '';
+  },
+
+  // ==================== CLOUD DATABASE SYNC ====================
+  async syncPushToSupabase(): Promise<{ success: boolean; message: string; counts?: any }> {
+    return supabaseService.uploadLocalDataToSupabase({
+      accounts: this.getAccounts(),
+      assets: this.getAssets(),
+      tickets: this.getTickets(),
+      inventory: this.getSpareParts(),
+      preventive: this.getPreventiveSchedules(),
+      logs: this.getLogs()
+    });
+  },
+
+  async syncPullFromSupabase(): Promise<{
+    success: boolean;
+    message: string;
+    data?: {
+      accounts: UserAccount[];
+      assets: Asset[];
+      tickets: MaintenanceTicket[];
+      inventory: SparePartInventoryItem[];
+      preventive: PreventiveScheduleItem[];
+      logs: AuditLog[];
+    };
+  }> {
+    const cloudData = await supabaseService.fetchAll();
+    if (!cloudData) {
+      return { success: false, message: 'فشل جلب البيانات من Supabase، يرجى التحقق من صحة رابط المشروع والمفتاح.' };
+    }
+
+    if (cloudData.accounts.length > 0) this.saveAccounts(cloudData.accounts);
+    this.saveAssets(cloudData.assets);
+    this.saveTickets(cloudData.tickets);
+    this.saveSpareParts(cloudData.inventory);
+    this.savePreventiveSchedules(cloudData.preventive);
+    this.saveLogs(cloudData.logs);
+
+    return {
+      success: true,
+      message: 'تم استيراد وتحديث البيانات من قاعدة بيانات Supabase بنجاح!',
+      data: cloudData
+    };
   },
 
   resetToDefault(): void {

@@ -213,6 +213,9 @@ export interface SparePartInventoryItem {
   location: string;
   status: 'in_stock' | 'low_stock' | 'out_of_stock';
   supplier?: string;
+  compatibleModels?: string[];
+  lastRestocked?: string;
+  createdAt?: string;
 }
 
 export interface PreventiveScheduleItem {
@@ -225,6 +228,7 @@ export interface PreventiveScheduleItem {
   lastDoneDate?: string;
   status: 'upcoming' | 'due_today' | 'overdue' | 'completed';
   checklist: Array<{ id: string; text: string; done: boolean }>;
+  createdAt?: string;
 }
 
 export type LogActionType = 
@@ -279,7 +283,9 @@ export type PermissionKey =
   | 'inventory'        // قطع الغيار والمخزون
   | 'preventive'       // الصيانة الوقائية
   | 'logs'             // سجل النشاطات والتعديلات
-  | 'user_management'; // إدارة المستخدمين والصلاحيات
+  | 'user_management'  // إدارة المستخدمين والصلاحيات
+  | 'analytics'        // التحليلات المتقدمة
+  | 'reports_export';  // تصدير التقارير المعتمدة
 
 export interface UserAccount {
   id: string;

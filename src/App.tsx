@@ -62,6 +62,22 @@ export const App: React.FC = () => {
   const [preventiveSchedules, setPreventiveSchedules] = useState<PreventiveScheduleItem[]>(() => storageService.getPreventiveSchedules());
   const [logs, setLogs] = useState<AuditLog[]>(() => storageService.getLogs());
 
+  // Automatic Background Cloud Sync on Launch
+  useEffect(() => {
+    storageService.syncPullFromSupabase().then(res => {
+      if (res.success && res.data) {
+        setAssets(res.data.assets);
+        setTickets(res.data.tickets);
+        setSpareParts(res.data.inventory);
+        setPreventiveSchedules(res.data.preventive);
+        setAccounts(res.data.accounts);
+        setLogs(res.data.logs);
+      }
+    }).catch(err => {
+      console.warn('Initial Supabase sync skipped:', err);
+    });
+  }, []);
+
   // Modals States
   const [officialReportTicket, setOfficialReportTicket] = useState<MaintenanceTicket | null>(null);
   const [ticketModalOpen, setTicketModalOpen] = useState(false);

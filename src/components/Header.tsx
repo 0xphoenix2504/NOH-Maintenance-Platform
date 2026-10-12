@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Asset, MaintenanceTicket, UserAccount, UserProfile, PermissionKey } from '../types';
-import { QrCode, Plus, Search, Sun, Moon, Bell, Laptop, UserCheck, ShieldCheck, LogOut, Printer, Database } from 'lucide-react';
+import { QrCode, Plus, Search, Sun, Moon, Bell, Laptop, UserCheck, ShieldCheck, LogOut, Printer, Database, CloudLightning } from 'lucide-react';
+import { getSupabaseConfig } from '../services/supabaseClient';
 
 interface HeaderProps {
   theme: 'light' | 'dark';
@@ -32,6 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
   currentUser,
   onLogout
 }) => {
+  const isCloudActive = getSupabaseConfig().isConfigured;
   const pendingPartsCount = tickets.filter(t => t.statusAfterMaintenance === 'needs_parts' || t.status === 'pending_parts').length;
   const userPerms: PermissionKey[] = currentUser?.permissions || [];
   const isAdmin = currentUser?.role === 'admin' || userPerms.includes('user_management');
@@ -96,15 +98,28 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
-        {/* Data Backup & Restore Modal Trigger */}
+        {/* Data & Cloud DB Management Trigger */}
         {isAdmin && onOpenDataManagement && (
           <button
             onClick={onOpenDataManagement}
             className="btn btn-secondary btn-sm"
-            title="إدارة البيانات والنسخ الاحتياطي (JSON / CSV)"
+            style={{
+              borderColor: isCloudActive ? 'rgba(16, 185, 129, 0.4)' : undefined,
+              background: isCloudActive ? 'rgba(16, 185, 129, 0.08)' : undefined
+            }}
+            title={isCloudActive ? 'قاعدة بيانات Supabase السحابية نشطة ومتصلة' : 'إدارة قاعدة البيانات السحابية والمحلية'}
           >
-            <Database size={16} />
-            <span>النسخ الاحتياطي</span>
+            {isCloudActive ? (
+              <>
+                <CloudLightning size={16} color="#10b981" />
+                <span style={{ color: '#059669', fontWeight: 800 }}>Supabase سحابي</span>
+              </>
+            ) : (
+              <>
+                <Database size={16} />
+                <span>قاعدة البيانات</span>
+              </>
+            )}
           </button>
         )}
 
