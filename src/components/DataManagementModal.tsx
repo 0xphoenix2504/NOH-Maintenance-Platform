@@ -277,8 +277,13 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
     const testRes = await testSupabaseConnection(cleanUrl, cleanKey);
     setIsTesting(false);
 
+    if (testRes.normalizedUrl && testRes.normalizedUrl !== cleanUrl) {
+      setUrlInput(testRes.normalizedUrl);
+    }
+
     if (testRes.success) {
-      saveSupabaseConfig(cleanUrl, cleanKey);
+      const finalUrl = testRes.normalizedUrl || cleanUrl;
+      saveSupabaseConfig(finalUrl, cleanKey);
       setSupabaseConfigState(getSupabaseConfig());
       setMsg({ type: 'success', text: testRes.message });
       try {
@@ -526,11 +531,15 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
               fontSize: '0.86rem',
               fontWeight: 700,
               display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
+              alignItems: 'flex-start',
+              gap: '10px',
+              whiteSpace: 'pre-line',
+              lineHeight: 1.6
             }}>
-              {msg.type === 'success' ? <CheckCircle2 size={18} /> : msg.type === 'error' ? <AlertTriangle size={18} /> : <CloudLightning size={18} />}
-              <span>{msg.text}</span>
+              <div style={{ flexShrink: 0, marginTop: '2px' }}>
+                {msg.type === 'success' ? <CheckCircle2 size={18} /> : msg.type === 'error' ? <AlertTriangle size={18} /> : <CloudLightning size={18} />}
+              </div>
+              <div style={{ flex: 1 }}>{msg.text}</div>
             </div>
           )}
 

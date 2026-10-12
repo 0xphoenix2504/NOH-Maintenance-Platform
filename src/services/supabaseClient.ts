@@ -47,9 +47,30 @@ export function getSupabaseConfig(): SupabaseConfig {
   };
 }
 
+export function normalizeSupabaseUrl(rawUrl: string): string {
+  let url = (rawUrl || '').trim();
+  if (!url) return '';
+
+  // If user pasted dashboard project URL like https://supabase.com/dashboard/project/abcdefgh...
+  const dashboardMatch = url.match(/supabase\.com\/dashboard\/project\/([a-zA-Z0-9_-]+)/i);
+  if (dashboardMatch && dashboardMatch[1]) {
+    return `https://${dashboardMatch[1]}.supabase.co`;
+  }
+
+  // Remove trailing slashes and common path segments
+  url = url.replace(/\/+$/, '').replace(/\/rest\/v1\/?$/i, '');
+
+  // Prepend https:// if protocol is omitted
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://${url}`;
+  }
+
+  return url;
+}
+
 export function saveSupabaseConfig(url: string, anonKey: string): void {
-  const cleanUrl = url.trim();
-  const cleanKey = anonKey.trim();
+  const cleanUrl = normalizeSupabaseUrl(url);
+  const cleanKey = anonKey.trim().replace(/[\r\n\t]/g, '');
 
   if (cleanUrl && cleanKey) {
     localStorage.setItem(SUPABASE_URL_KEY, cleanUrl);
@@ -92,35 +113,122 @@ export function getSupabaseClient(): SupabaseClient | null {
   }
 }
 
-export async function testSupabaseConnection(url: string, key: string): Promise<{ success: boolean; message: string }> {
+export async function testSupabaseConnection(
+  rawUrl: string,
+  rawKey: string
+): Promise<{ success: boolean; message: string; normalizedUrl?: string }> {
+  const url = normalizeSupabaseUrl(rawUrl);
+  const key = (rawKey || '').trim().replace(/[\r\n\t]/g, '');
+
+  if (!url || !key) {
+    return {
+      success: false,
+      message: 'يرجى إدخال كل من رابط المشروع Project URL ومفتاح Anon Key.'
+    };
+  }
+
+  // Basic check for URL structure
   try {
-    const testClient = createClient(url.trim(), key.trim(), {
-      auth: { persistSession: false }
-    });
-
-    const { error } = await testClient.from('noh_accounts').select('id').limit(1);
-
-    if (error) {
-      if (error.code === 'PGRST116' || error.message.includes('relation "public.noh_accounts" does not exist')) {
-        return {
-          success: false,
-          message: 'تم الاتصال بـ Supabase بنجاح ولكن الجداول غير موجودة! يرجى تشغيل سكربت supabase_schema.sql في SQL Editor.'
-        };
-      }
+    const parsed = new URL(url);
+    if (
+      !parsed.hostname.includes('supabase.co') &&
+      !parsed.hostname.includes('localhost') &&
+      !parsed.hostname.includes('127.0.0.1')
+    ) {
       return {
         success: false,
+        message: `الرابط المدخل (${url}) غير صالح. يجب أن ينتهي بنطاق .supabase.co (مثل: https://your-id.supabase.co)`
+      };
+    }
+  } catch {
+    return {
+      success: false,
+      message: 'صيغة الرابط غير صحيحة. يرجى التأكد من كتابة رابط سليم مثل https://your-id.supabase.co'
+    };
+  }
+
+  try {
+    const testClient = createClient(url, key, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
+
+    const { error } = await testClient
+      .from('noh_accounts')
+      .select('id')
+      .limit(1);
+
+    if (error) {
+      if (
+        error.code === 'PGRST116' ||
+        error.code === '42P01' ||
+        error.message.includes('relation "public.noh_accounts" does not exist') ||
+        error.message.includes('noh_accounts')
+      ) {
+        return {
+          success: false,
+          normalizedUrl: url,
+          message:
+            'تم الاتصال بالسيرفر بنجاح لكن الجداول غير موجودة! يرجى فتح SQL Editor في Supabase وتنفيذ سكربت supabase_schema.sql.'
+        };
+      }
+
+      if (
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError') ||
+        error.message.includes('Load failed')
+      ) {
+        return {
+          success: false,
+          normalizedUrl: url,
+          message:
+            'تعذر الاتصال بخادم Supabase (TypeError: Failed to fetch).\n' +
+            'تأكد من:\n' +
+            '1. نسخ Project URL من (Project Settings ➔ API) وليس رابط لوحة التحكم في المتصفح.\n' +
+            '2. اكتمال تهيئة المشروع على Supabase (ألا يكون في وضع Paused أو قيد الإنشاء).\n' +
+            '3. تعطيل مانع الإعلانات (AdBlocker) أو حماية متصفح Brave على هذا الموقع.\n' +
+            '4. التأكد من اتصال الإنترنت وعدم وجود جدار حماية (Firewall) يحظر نطاق supabase.co.'
+        };
+      }
+
+      return {
+        success: false,
+        normalizedUrl: url,
         message: `خطأ في الاتصال: ${error.message}`
       };
     }
 
     return {
       success: true,
+      normalizedUrl: url,
       message: 'تم الاتصال بقاعدة بيانات Supabase السحابية بنجاح!'
     };
   } catch (err: any) {
+    const errMsg = err?.message || String(err);
+    if (
+      errMsg.includes('Failed to fetch') ||
+      errMsg.includes('NetworkError') ||
+      errMsg.includes('Load failed')
+    ) {
+      return {
+        success: false,
+        normalizedUrl: url,
+        message:
+          'تعذر الاتصال بخادم Supabase (TypeError: Failed to fetch).\n' +
+          'تأكد من:\n' +
+          '1. نسخ Project URL من (Project Settings ➔ API) وليس رابط لوحة التحكم في المتصفح.\n' +
+          '2. اكتمال تهيئة المشروع على Supabase (ألا يكون في وضع Paused أو قيد الإنشاء).\n' +
+          '3. تعطيل مانع الإعلانات (AdBlocker) أو حماية متصفح Brave على هذا الموقع.\n' +
+          '4. التأكد من اتصال الإنترنت وعدم وجود جدار حماية (Firewall) يحظر نطاق supabase.co.'
+      };
+    }
+
     return {
       success: false,
-      message: `فشل الاتصال: ${err.message || 'يرجى التأكد من صحة الرابط ومفتاح Anon Key'}`
+      normalizedUrl: url,
+      message: `فشل الاتصال: ${errMsg}`
     };
   }
 }
